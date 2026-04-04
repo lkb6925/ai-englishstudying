@@ -1,0 +1,5 @@
+{
+  "name": "Remix: Flow Reader",
+  "description": "An English reading assistant that tracks lookups and builds a personal wordbook.",
+  "requestFramePermissions": []
+}
