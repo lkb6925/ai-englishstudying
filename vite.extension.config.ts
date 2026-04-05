@@ -8,7 +8,6 @@ export default defineConfig({
       entry: {
         background: path.resolve(__dirname, 'extension/background.ts'),
         content: path.resolve(__dirname, 'extension/content.tsx'),
-        options: path.resolve(__dirname, 'extension/options.tsx'),
       },
       formats: ['es'],
     },
@@ -21,7 +20,7 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, './src'),
+      '@': path.resolve(__dirname, '.'),
     },
   },
 });

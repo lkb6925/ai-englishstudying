@@ -1,15 +1,13 @@
 {
-  "name": "react-example",
+  "name": "flow-reader",
   "private": true,
-  "version": "0.0.0",
+  "version": "0.1.0",
   "type": "module",
   "scripts": {
     "dev": "tsx server.ts",
     "build": "vite build",
     "build-extension": "vite build --config vite.extension.config.ts",
     "preview": "vite preview",
-    "start": "node server.ts",
-    "clean": "rm -rf dist",
     "lint": "tsc --noEmit"
   },
   "dependencies": {
