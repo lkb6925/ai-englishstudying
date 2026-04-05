@@ -1,5 +1,5 @@
 import React from 'react';
-import { Header } from '@/src/components/header';
+import { Header } from './src/components/header';
 import { Link } from 'react-router-dom';
 import { MousePointer2, BookOpen, BarChart3, Zap, ArrowRight, Chrome } from 'lucide-react';
 
