@@ -13,7 +13,6 @@
       color: #f4f4f5;
       -webkit-font-smoothing: antialiased;
     }
-
     .header {
       padding: 16px;
       background: linear-gradient(135deg, rgba(99,102,241,0.2), rgba(139,92,246,0.1));
@@ -22,66 +21,100 @@
       align-items: center;
       gap: 10px;
     }
-
     .logo {
-      width: 32px; height: 32px; border-radius: 10px;
+      width: 32px;
+      height: 32px;
+      border-radius: 10px;
       background: linear-gradient(135deg, #6366f1, #8b5cf6);
-      display: flex; align-items: center; justify-content: center;
-      font-size: 16px; flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      flex-shrink: 0;
     }
-
     .logo-text { font-weight: 900; font-size: 15px; }
     .logo-sub { font-size: 11px; color: #71717a; margin-top: 1px; }
-
     .body { padding: 16px; }
-
     .status {
-      display: flex; align-items: center; gap: 8px;
-      padding: 10px 12px; border-radius: 10px; margin-bottom: 12px;
-      background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.25);
-      font-size: 13px; font-weight: 600; color: #6ee7b7;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 12px;
+      border-radius: 10px;
+      margin-bottom: 12px;
+      background: rgba(16,185,129,0.1);
+      border: 1px solid rgba(16,185,129,0.25);
+      font-size: 13px;
+      font-weight: 600;
+      color: #6ee7b7;
     }
-
     .dot {
-      width: 7px; height: 7px; border-radius: 50%;
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
       background: #10b981;
       animation: pulse 2s ease-in-out infinite;
     }
-
     @keyframes pulse {
       0%, 100% { opacity: 1; }
       50% { opacity: 0.4; }
     }
-
     .key-badge {
-      display: inline-flex; align-items: center; gap: 6px;
-      padding: 8px 12px; border-radius: 8px; font-size: 13px; font-weight: 700;
-      background: rgba(99,102,241,0.12); border: 1px solid rgba(99,102,241,0.3);
-      color: #818cf8; width: 100%; margin-bottom: 12px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 12px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 700;
+      background: rgba(99,102,241,0.12);
+      border: 1px solid rgba(99,102,241,0.3);
+      color: #818cf8;
+      width: 100%;
+      margin-bottom: 12px;
     }
-
     .key-icon {
-      font-size: 16px; width: 28px; height: 28px; border-radius: 6px;
-      background: rgba(99,102,241,0.2); display: flex; align-items: center;
-      justify-content: center; flex-shrink: 0;
+      font-size: 16px;
+      width: 28px;
+      height: 28px;
+      border-radius: 6px;
+      background: rgba(99,102,241,0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
     }
-
     .btn {
-      display: flex; align-items: center; justify-content: center; gap: 6px;
-      width: 100%; padding: 10px 14px; border-radius: 10px; border: none;
-      font-size: 13px; font-weight: 700; cursor: pointer; text-decoration: none;
-      transition: all 0.15s ease; margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      width: 100%;
+      padding: 10px 14px;
+      border-radius: 10px;
+      border: none;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.15s ease;
+      margin-bottom: 8px;
     }
-
     .btn-primary {
-      background: linear-gradient(135deg, #6366f1, #8b5cf6); color: white;
+      background: linear-gradient(135deg, #6366f1, #8b5cf6);
+      color: white;
     }
-
     .btn-secondary {
-      background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.08);
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.08);
       color: #a1a1aa;
     }
-
+    .meta {
+      margin-top: 8px;
+      font-size: 11px;
+      color: #71717a;
+      word-break: break-all;
+    }
     .btn:hover { transform: scale(1.02); }
   </style>
 </head>
@@ -100,33 +133,44 @@
       확장앱 활성화됨
     </div>
 
-    <div class="key-badge" id="modifier-display">
+    <div class="key-badge">
       <span class="key-icon">⌥</span>
       <span id="modifier-text">Alt / Option + 마우스 올리기</span>
     </div>
 
-    <a href="http://localhost:3000/wordbook" target="_blank" class="btn btn-primary">
+    <button class="btn btn-primary" id="wordbook-btn">
       📚 내 단어장 열기
-    </a>
+    </button>
 
     <button class="btn btn-secondary" id="options-btn">
       ⚙️ 설정 (단축키 변경)
     </button>
+
+    <p class="meta" id="api-base-url"></p>
   </div>
 
   <script>
-    // Load current modifier setting
-    chrome.storage.sync.get(['flow_reader_modifier']).then((values) => {
-      const modifier = values.flow_reader_modifier || 'alt_option';
-      const text = document.getElementById('modifier-text');
-      const icon = document.querySelector('.key-icon');
-      if (modifier === 'cmd_ctrl') {
-        text.textContent = 'Cmd / Ctrl + 마우스 올리기';
-        icon.textContent = '⌘';
-      } else {
-        text.textContent = 'Alt / Option + 마우스 올리기';
-        icon.textContent = '⌥';
-      }
+    chrome.runtime.sendMessage({ type: 'FLOW_GET_RUNTIME_CONFIG' }).then((response) => {
+      const runtime = response?.ok ? response.data : null;
+      const modifier = runtime?.modifier || 'alt_option';
+      const appUrl = runtime?.appUrl || '';
+      const apiBaseUrl = runtime?.apiBaseUrl || '';
+
+      document.getElementById('modifier-text').textContent =
+        modifier === 'cmd_ctrl'
+          ? 'Cmd / Ctrl + 마우스 올리기'
+          : 'Alt / Option + 마우스 올리기';
+      document.querySelector('.key-icon').textContent =
+        modifier === 'cmd_ctrl' ? '⌘' : '⌥';
+      document.getElementById('api-base-url').textContent =
+        apiBaseUrl ? 'API: ' + apiBaseUrl : '';
+
+      document.getElementById('wordbook-btn').addEventListener('click', () => {
+        if (!appUrl) {
+          return;
+        }
+        chrome.tabs.create({ url: appUrl.replace(/\/$/, '') + '/wordbook' });
+      });
     });
 
     document.getElementById('options-btn').addEventListener('click', () => {

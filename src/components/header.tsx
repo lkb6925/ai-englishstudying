@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { useAuth, supabase } from '@/src/lib/supabase';
 import { Button } from '@/src/components/ui/button';
+import { clearExtensionJwt } from '@/src/lib/extension-bridge';
 
 export function Header() {
   const { user } = useAuth();
@@ -9,6 +10,7 @@ export function Header() {
     if (supabase) {
       await supabase.auth.signOut();
     }
+    clearExtensionJwt();
   };
 
   return (
@@ -20,6 +22,7 @@ export function Header() {
         </Link>
         
         <nav className="flex items-center gap-4">
+          <Link to="/setup" className="text-sm font-medium text-muted-foreground hover:text-foreground">Install</Link>
           <Link to="/wordbook" className="text-sm font-medium text-muted-foreground hover:text-foreground">Wordbook</Link>
           {user ? (
             <div className="flex items-center gap-3">

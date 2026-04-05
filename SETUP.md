@@ -1,152 +1,82 @@
-# Flow Reader — 완전 설정 가이드
+# Flow Reader Setup
 
-> AI 기반 영어 단어 조회 + 자동 단어장 서비스
+Flow Reader는 웹앱, Express API, Chrome 확장앱이 함께 동작하는 구조입니다.
 
----
+## 소스 기준
 
-## 📁 파일 구조
+- 웹앱의 정식 소스는 `src/`입니다.
+- 확장앱 엔트리는 루트의 `background.ts`, `content.tsx`, `options.tsx`, `popup.html`입니다.
+- `dist/`와 `dist-extension/`은 빌드 산출물입니다.
+- `gemini_feedback.md`는 watcher가 실행 중일 때 생성되는 산출물입니다.
 
-```
-flow-reader/
-├── src/                        # 웹앱 (React)
-│   ├── App.tsx
-│   ├── index.css               # 다크 테마 디자인 시스템
-│   ├── main.tsx
-│   ├── pages/
-│   │   ├── home.tsx            # 홈페이지
-│   │   └── wordbook.tsx        # 단어장 페이지
-│   ├── components/
-│   │   ├── auth-form.tsx       # 로그인/회원가입
-│   │   ├── header.tsx
-│   │   ├── swipe-quiz.tsx      # 스와이프 복습
-│   │   ├── wordbook-dashboard.tsx
-│   │   ├── wordbook-list.tsx
-│   │   └── ui/button.tsx
-│   └── lib/
-│       ├── supabase.ts         # Supabase 클라이언트
-│       ├── rank.ts             # 랭크 로직
-│       ├── types.ts
-│       └── utils.ts
-├── extension/                  # Chrome 확장앱
-│   ├── manifest.json
-│   ├── background.ts           # 서비스 워커
-│   ├── content.tsx             # 페이지 내 오버레이
-│   ├── messages.ts             # 타입 정의
-│   ├── options.tsx             # ⭐ 설정 페이지 (단축키 변경)
-│   ├── popup.html              # ⭐ 확장앱 팝업
-│   └── chrome.d.ts
-├── server.ts                   # Express + Gemini AI 서버
-├── supabase-schema.sql         # ⭐ DB 스키마 (한번만 실행)
-├── vite.config.ts
-├── vite.extension.config.ts
-├── package.json
-├── tsconfig.json
-├── .env.example                # 환경변수 예시
-└── .env.local                  # ← 실제 키 입력 (git 제외)
-```
+## 필수 환경변수
 
----
-
-## 🚀 STEP 1: Supabase 설정
-
-### 1-1. 프로젝트 생성
-1. [supabase.com](https://supabase.com) → **New Project**
-2. 프로젝트 이름, 비밀번호 설정 후 생성 (약 2분 소요)
-
-### 1-2. DB 스키마 실행
-1. Supabase 대시보드 → **SQL Editor**
-2. `supabase-schema.sql` 파일 전체 내용 붙여넣기
-3. **Run** 클릭
-
-### 1-3. 키 복사
-1. 대시보드 → **Settings** → **API**
-2. `Project URL` → `VITE_SUPABASE_URL`에 입력
-3. `anon public` 키 → `VITE_SUPABASE_ANON_KEY`에 입력
-
-### 1-4. 이메일 인증 끄기 (개발 중 편의)
-- **Authentication** → **Providers** → **Email** → **Confirm email** 토글 OFF
-- (나중에 배포 시 다시 켜세요)
-
----
-
-## 🤖 STEP 2: Gemini API 키
-
-1. [aistudio.google.com](https://aistudio.google.com) 접속
-2. **Get API key** → **Create API key**
-3. 키 복사 → `GEMINI_API_KEY`에 입력
-
----
-
-## ⚙️ STEP 3: 환경변수 설정
-
-`.env.local` 파일을 열고 입력:
+`.env.local` 또는 `.env`에 아래 값을 넣습니다.
 
 ```env
-VITE_SUPABASE_URL=https://xxxxxxxxxxxx.supabase.co
-VITE_SUPABASE_ANON_KEY=eyJhbGci...
-GEMINI_API_KEY=AIzaSy...
 APP_URL=http://localhost:3000
+API_BASE_URL=http://localhost:3000
+VITE_APP_URL=http://localhost:3000
+VITE_API_BASE_URL=http://localhost:3000
+VITE_SUPABASE_URL=https://YOUR_PROJECT.supabase.co
+VITE_SUPABASE_ANON_KEY=YOUR_SUPABASE_ANON_KEY
+GEMINI_API_KEY=YOUR_GEMINI_API_KEY
 ```
 
----
+- `APP_URL`: 웹앱의 public origin
+- `API_BASE_URL`: 확장앱이 호출할 기본 API origin. 비우면 `APP_URL`을 사용합니다.
+- `VITE_APP_URL`, `VITE_API_BASE_URL`: 확장앱/프런트 번들용 공개 환경변수입니다.
 
-## 💻 STEP 4: 웹앱 실행
+## 로컬 실행
 
 ```bash
 npm install
 npm run dev
 ```
 
-→ http://localhost:3000 에서 확인
+- 웹앱과 API는 `http://localhost:3000`에서 함께 실행됩니다.
+- 홈 화면에서 `/setup`으로 들어가면 확장앱 설치 안내를 볼 수 있습니다.
 
----
+## Chrome 확장앱 빌드
 
-## 🔌 STEP 5: Chrome 확장앱 설치
-
-### 5-1. 빌드
 ```bash
 npm run build-extension
 ```
-→ `dist-extension/` 폴더 생성됨
 
-### 5-2. Chrome에 설치
-1. Chrome 주소창에 `chrome://extensions` 입력
-2. 우측 상단 **개발자 모드** 토글 ON
-3. **압축 해제된 확장 프로그램 로드** 클릭
-4. `dist-extension/` 폴더 선택
+- `dist-extension/` 폴더가 생성됩니다.
+- `dist-extension/manifest.json`은 환경변수를 기준으로 자동 생성됩니다.
+- Chrome의 `chrome://extensions`에서 개발자 모드를 켠 뒤 `dist-extension/` 폴더를 불러옵니다.
 
-### 5-3. 확장앱 설정
-- Chrome 툴바에서 Flow Reader 아이콘 클릭
-- **⚙️ 설정** 버튼 → 단축키 선택 (Alt/Option 또는 Cmd/Ctrl)
-- 서버 주소 확인 (기본: `http://localhost:3000`)
+## Supabase 스키마
 
----
+`supabase-schema.sql`을 SQL Editor에서 실행합니다.
 
-## 🎮 사용 방법
+- `profiles`
+- `lookup_events`
+- `wordbook_entries`
+- `wordbook_entries.meaning_snapshot`
 
-1. 아무 영어 웹페이지로 이동
-2. `Alt` (또는 설정한 키)를 누른 채로 모르는 단어에 마우스 올리기
-3. 0.2초 후 AI가 문맥에 맞는 한국어 뜻 표시
-4. 같은 단어를 2번 이상 조회하면 단어장에 자동 등록
+기존 프로젝트를 업그레이드하는 경우에도 `ALTER TABLE ... ADD COLUMN IF NOT EXISTS`가 포함되어 있어 `meaning_snapshot` 필드가 추가됩니다.
 
----
+## Gemini Watcher
 
-## ❗ 문제 해결
+```bash
+node gemini-watcher.js
+```
 
-| 문제 | 해결 방법 |
-|------|-----------|
-| 로그인 안 됨 | Supabase 대시보드에서 이메일 인증 OFF 확인 |
-| 팝업이 안 뜸 | 확장앱 설정에서 서버 주소 `http://localhost:3000` 확인 |
-| AI 응답 없음 | `.env.local`의 `GEMINI_API_KEY` 확인, 서버 재시작 |
-| 단어장이 비어 있음 | 로그인 후 단어를 2회 이상 조회해야 등록됨 |
-| 확장앱 오류 | `chrome://extensions`에서 새로고침 버튼 클릭 |
+- 실행 시 `gemini_feedback.md`가 없으면 자동으로 초기 파일을 만듭니다.
+- 코드 파일을 저장하면 watcher가 Gemini 리뷰를 요청하고 결과를 `gemini_feedback.md`에 기록합니다.
+- `GEMINI_API_KEY`가 없으면 리뷰 대신 복구 방법이 적힌 안내를 파일에 남깁니다.
 
----
+## 출시 전 체크리스트
 
-## 🗺️ 향후 개선 사항 (직접 해야 함)
+```bash
+npm run lint
+npm run build
+npm run build-extension
+```
 
-- [ ] Supabase Storage로 이미지/음성 지원
-- [ ] Premium 결제 연동 (Stripe 등)
-- [ ] 확장앱 Chrome 웹스토어 배포
-- [ ] 서버 배포 (Render, Railway, Fly.io 등)
-- [ ] 푸시 알림으로 복습 리마인더
+- 로그인 후 확장앱 조회가 저장되는지 확인합니다.
+- 같은 단어를 두 번 조회하면 `wordbook_entries`에 저장되는지 확인합니다.
+- Premium 계정에서 `/wordbook`과 Swipe Review가 모두 열리는지 확인합니다.
+- 무료 계정에서 상세 단어장과 리뷰가 잠기는지 확인합니다.

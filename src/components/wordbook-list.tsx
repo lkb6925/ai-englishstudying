@@ -1,3 +1,4 @@
+import { Button } from '@/src/components/ui/button';
 import { rankOrderValue } from '@/src/lib/rank';
 import type { PlanTier, Rank, WordbookEntry } from '@/src/lib/types';
 
@@ -39,12 +40,13 @@ export function WordbookList({ words, planTier }: WordbookListProps) {
   const orderedRanks = (Object.keys(grouped) as Rank[]).sort(
     (left, right) => rankOrderValue(left) - rankOrderValue(right),
   );
+  const isPremium = planTier === 'premium';
 
   return (
     <section className="relative rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
       <h1 className="mb-6 text-2xl font-bold text-slate-900">My Wordbook</h1>
       
-      <div className={planTier === 'free' ? 'pointer-events-none blur-md select-none' : ''}>
+      <div className={isPremium ? '' : 'pointer-events-none select-none blur-md'}>
         <div className="space-y-10">
           {orderedRanks.map((rank) => {
             const items = grouped[rank];
@@ -63,6 +65,11 @@ export function WordbookList({ words, planTier }: WordbookListProps) {
                   {items.map((item) => (
                     <div key={item.id} className="group rounded-xl border border-slate-100 bg-slate-50 p-4 transition-all hover:border-primary/20 hover:bg-white hover:shadow-md">
                       <p className="text-lg font-bold text-slate-900">{item.term}</p>
+                      {item.meaning_snapshot?.length ? (
+                        <p className="mt-2 text-sm font-medium text-slate-700">
+                          {item.meaning_snapshot.join(' · ')}
+                        </p>
+                      ) : null}
                       <p className="mt-1 text-sm text-slate-500 line-clamp-2">{item.context_sample}</p>
                       <div className="mt-3 flex items-center justify-between text-xs text-slate-400">
                         <span>Lookups: {item.total_lookup_count}</span>
@@ -77,11 +84,13 @@ export function WordbookList({ words, planTier }: WordbookListProps) {
         </div>
       </div>
 
-      {planTier === 'free' ? (
+      {!isPremium ? (
         <div className="absolute inset-0 flex items-center justify-center rounded-2xl bg-white/60 backdrop-blur-sm">
           <div className="max-w-sm rounded-2xl border border-slate-200 bg-white p-8 text-center shadow-xl">
             <h3 className="mb-2 text-xl font-bold">Unlock Your Wordbook</h3>
-            <p className="mb-6 text-slate-600">Premium 멤버가 되어 모든 단어 데이터와 상세 분석 기능을 이용하세요.</p>
+            <p className="mb-6 text-slate-600">
+              Premium 멤버가 되어 저장된 의미 스냅샷과 Swipe Review를 모두 이용하세요.
+            </p>
             <Button className="w-full rounded-full">Upgrade to Premium</Button>
           </div>
         </div>
@@ -101,5 +110,3 @@ function getRankDotColor(rank: Rank) {
   };
   return colors[rank];
 }
-
-import { Button } from '@/src/components/ui/button';

@@ -50,12 +50,16 @@ CREATE TABLE IF NOT EXISTS public.wordbook_entries (
   term TEXT NOT NULL,
   normalized_term TEXT NOT NULL,
   context_sample TEXT,
+  meaning_snapshot TEXT[],
   total_lookup_count INTEGER NOT NULL DEFAULT 1,
   rank TEXT NOT NULL DEFAULT 'blue' CHECK (rank IN ('blue', 'green', 'yellow', 'orange', 'red', 'master')),
   last_seen_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   UNIQUE (user_id, normalized_term)
 );
+
+ALTER TABLE public.wordbook_entries
+  ADD COLUMN IF NOT EXISTS meaning_snapshot TEXT[];
 
 CREATE INDEX IF NOT EXISTS wordbook_entries_user_id_idx ON public.wordbook_entries(user_id);
 CREATE INDEX IF NOT EXISTS wordbook_entries_rank_idx ON public.wordbook_entries(rank);

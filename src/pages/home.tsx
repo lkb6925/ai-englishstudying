@@ -21,9 +21,11 @@ export function HomePage() {
               조회된 모든 데이터는 자동으로 당신만의 단어장이 됩니다.
             </p>
             <div className="flex justify-center gap-4">
-              <Button size="lg" className="rounded-full px-8">
-                확장앱 설치하기
-              </Button>
+              <Link to="/setup">
+                <Button size="lg" className="rounded-full px-8">
+                  확장앱 설치하기
+                </Button>
+              </Link>
               <Link to="/wordbook">
                 <Button size="lg" variant="outline" className="rounded-full px-8">
                   내 단어장 보기

@@ -17,14 +17,26 @@ declare namespace chrome {
     export const sync: {
       get: (keys: string | string[] | null) => Promise<any>;
       set: (items: any) => Promise<void>;
+      remove: (keys: string | string[]) => Promise<void>;
     };
     export const local: {
       get: (keys: string | string[] | null) => Promise<any>;
       set: (items: any) => Promise<void>;
+      remove: (keys: string | string[]) => Promise<void>;
     };
     export const session: {
       get: (keys: string | string[] | null) => Promise<any>;
       set: (items: any) => Promise<void>;
+      remove: (keys: string | string[]) => Promise<void>;
     };
   }
+}
+
+interface ImportMetaEnv {
+  readonly VITE_APP_URL?: string;
+  readonly VITE_API_BASE_URL?: string;
+}
+
+interface ImportMeta {
+  readonly env: ImportMetaEnv;
 }

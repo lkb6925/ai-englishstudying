@@ -1,5 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import type { ModifierMode } from './messages';
+import { resolveApiBaseUrl } from './app-config';
+
+const defaultApiBaseUrl = resolveApiBaseUrl(
+  import.meta.env.VITE_API_BASE_URL,
+  import.meta.env.VITE_APP_URL,
+);
 
 type OptionsState = {
   modifier: ModifierMode;
@@ -10,7 +16,7 @@ type OptionsState = {
 function Options() {
   const [state, setState] = useState<OptionsState>({
     modifier: 'alt_option',
-    apiBaseUrl: 'http://localhost:3000',
+    apiBaseUrl: defaultApiBaseUrl,
     saved: false,
   });
 
@@ -20,7 +26,7 @@ function Options() {
       setState(prev => ({
         ...prev,
         modifier: (values.flow_reader_modifier as ModifierMode) || 'alt_option',
-        apiBaseUrl: values.flow_reader_api_base_url || 'http://localhost:3000',
+        apiBaseUrl: values.flow_reader_api_base_url || defaultApiBaseUrl,
       }));
     });
   }, []);
@@ -155,7 +161,7 @@ function Options() {
             }}
           />
           <p style={{ margin: '8px 0 0 0', color: '#52525b', fontSize: '12px' }}>
-            로컬: http://localhost:3000 | 배포 시 실제 도메인으로 변경하세요.
+            기본값: {defaultApiBaseUrl}
           </p>
         </div>
 

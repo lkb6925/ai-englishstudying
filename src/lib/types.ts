@@ -21,6 +21,7 @@ export type WordbookEntry = {
   term: string;
   normalized_term: string;
   context_sample: string;
+  meaning_snapshot: string[] | null;
   total_lookup_count: number;
   rank: Rank;
   last_seen_at: string;

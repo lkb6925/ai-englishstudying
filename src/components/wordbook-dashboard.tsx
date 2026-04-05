@@ -10,6 +10,7 @@ type WordbookDashboardProps = {
 
 export function WordbookDashboard({ words, planTier }: WordbookDashboardProps) {
   const [isReviewOpen, setIsReviewOpen] = useState(false);
+  const isPremium = planTier === 'premium';
 
   return (
     <section className="space-y-6">
@@ -21,15 +22,32 @@ export function WordbookDashboard({ words, planTier }: WordbookDashboardProps) {
           </div>
           <button
             type="button"
-            onClick={() => setIsReviewOpen((value) => !value)}
-            className="rounded-xl bg-primary px-6 py-3 text-sm font-bold text-primary-foreground transition-all hover:bg-primary/90"
+            onClick={() => {
+              if (!isPremium) {
+                return;
+              }
+              setIsReviewOpen((value) => !value);
+            }}
+            disabled={!isPremium}
+            className="rounded-xl bg-primary px-6 py-3 text-sm font-bold text-primary-foreground transition-all hover:bg-primary/90 disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-500"
           >
-            {isReviewOpen ? 'Close Review' : 'Start Review'}
+            {isPremium
+              ? isReviewOpen
+                ? 'Close Review'
+                : 'Start Review'
+              : 'Premium Only'}
           </button>
         </div>
+        {!isPremium ? (
+          <p className="mt-4 text-sm text-slate-500">
+            Swipe Review와 전체 단어장 분석은 Premium에서 사용할 수 있습니다.
+          </p>
+        ) : null}
       </div>
 
-      {isReviewOpen ? <SwipeQuiz words={words} onClose={() => setIsReviewOpen(false)} /> : null}
+      {isPremium && isReviewOpen ? (
+        <SwipeQuiz words={words} onClose={() => setIsReviewOpen(false)} />
+      ) : null}
 
       <WordbookList words={words} planTier={planTier} />
     </section>

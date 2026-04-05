@@ -5,8 +5,13 @@ import type {
   LookupRequestPayload,
   ModifierMode,
 } from './messages';
+import { resolveApiBaseUrl, resolveAppOrigin } from './app-config';
 
-const defaultApiBaseUrl = 'http://localhost:3000';
+const defaultAppUrl = resolveAppOrigin(import.meta.env.VITE_APP_URL);
+const defaultApiBaseUrl = resolveApiBaseUrl(
+  import.meta.env.VITE_API_BASE_URL,
+  import.meta.env.VITE_APP_URL,
+);
 const modifierStorageKey = 'flow_reader_modifier';
 const jwtStorageKey = 'supabase_jwt';
 const guestStatsStorageKey = 'flow_reader_guest_stats';
@@ -138,6 +143,7 @@ async function handleLookup(
     body: JSON.stringify({
       term: payload.term,
       context: payload.context,
+      meanings: lookupData.contextual_meanings,
       sourceDomain: payload.sourceDomain,
       sourcePathHash: payload.sourcePathHash,
     }),
@@ -173,6 +179,11 @@ async function getModifier(): Promise<ModifierMode> {
   return 'alt_option';
 }
 
+async function clearAuthToken(): Promise<void> {
+  await chrome.storage.session.remove(jwtStorageKey);
+  await chrome.storage.local.remove(jwtStorageKey);
+}
+
 chrome.runtime.onMessage.addListener(
   (message: any, _sender: any, sendResponse: (response: any) => void) => {
     const handler = async (
@@ -184,6 +195,17 @@ chrome.runtime.onMessage.addListener(
       if (incoming.type === 'FLOW_GET_MODIFIER') {
         const modifier = await getModifier();
         return { ok: true, data: { modifier } };
+      }
+      if (incoming.type === 'FLOW_GET_RUNTIME_CONFIG') {
+        const modifier = await getModifier();
+        return {
+          ok: true,
+          data: {
+            modifier,
+            appUrl: defaultAppUrl,
+            apiBaseUrl: defaultApiBaseUrl,
+          },
+        };
       }
       if (incoming.type === 'FLOW_SET_MODIFIER') {
         await chrome.storage.sync.set({
@@ -198,6 +220,10 @@ chrome.runtime.onMessage.addListener(
         await chrome.storage.local.set({
           [jwtStorageKey]: incoming.payload.token,
         });
+        return { ok: true, data: { saved: true } };
+      }
+      if (incoming.type === 'FLOW_CLEAR_JWT') {
+        await clearAuthToken();
         return { ok: true, data: { saved: true } };
       }
       return { ok: false, error: { message: 'Unknown message type.' } };

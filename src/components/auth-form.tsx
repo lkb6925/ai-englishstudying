@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/src/components/ui/button';
 import { supabase } from '@/src/lib/supabase';
+import { syncExtensionJwt } from '@/src/lib/extension-bridge';
 
 export function AuthForm() {
   const navigate = useNavigate();
@@ -26,13 +27,8 @@ export function AuthForm() {
         const { data, error: loginError } = await supabase.auth.signInWithPassword({ email, password });
         if (loginError) throw loginError;
         
-        // Post message for extension bridge
         if (data.session?.access_token) {
-          window.postMessage({
-            source: 'tap-and-know-auth',
-            type: 'SUPABASE_JWT',
-            token: data.session.access_token
-          }, window.location.origin);
+          syncExtensionJwt(data.session.access_token);
         }
       } else {
         const { error: signupError } = await supabase.auth.signUp({ email, password });

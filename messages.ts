@@ -26,6 +26,12 @@ export type LookupResultPayload = {
   guestStats: GuestStats | null;
 };
 
+export type RuntimeConfigPayload = {
+  modifier: ModifierMode;
+  appUrl: string;
+  apiBaseUrl: string;
+};
+
 export type WorkerErrorPayload = {
   message: string;
 };
@@ -33,12 +39,18 @@ export type WorkerErrorPayload = {
 export type ExtensionMessage =
   | { type: 'FLOW_LOOKUP'; payload: LookupRequestPayload }
   | { type: 'FLOW_GET_MODIFIER' }
+  | { type: 'FLOW_GET_RUNTIME_CONFIG' }
   | { type: 'FLOW_SET_MODIFIER'; payload: { modifier: ModifierMode } }
-  | { type: 'FLOW_SET_JWT'; payload: { token: string } };
+  | { type: 'FLOW_SET_JWT'; payload: { token: string } }
+  | { type: 'FLOW_CLEAR_JWT' };
 
 export type ExtensionMessageResponse =
   | {
       ok: true;
-      data: LookupResultPayload | { modifier: ModifierMode } | { saved: true };
+      data:
+        | LookupResultPayload
+        | { modifier: ModifierMode }
+        | { saved: true }
+        | RuntimeConfigPayload;
     }
   | { ok: false; error: WorkerErrorPayload };

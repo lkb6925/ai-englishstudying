@@ -3,14 +3,15 @@ import type {
   LookupResultPayload,
   ModifierMode,
 } from './messages';
+import { getTrustedAuthBridgeOrigins } from './app-config';
+import { shouldExcludeDomain } from './text';
 
 const LOOKUP_DEBOUNCE_MS = 200;
 const MAX_REQ_PER_MINUTE = 10;
 const CACHE_TTL_MS = 24 * 60 * 60 * 1000;
-const trustedAuthBridgeOrigins = [
-  'https://thoughthecontext.com',
-  'http://localhost:3000',
-];
+const trustedAuthBridgeOrigins = getTrustedAuthBridgeOrigins(
+  import.meta.env.VITE_APP_URL,
+);
 
 type OverlayState = {
   word: string;
@@ -27,8 +28,8 @@ type CachedLookup = {
 
 type AuthBridgeMessage = {
   source: 'tap-and-know-auth';
-  type: 'SUPABASE_JWT';
-  token: string;
+  type: 'SUPABASE_JWT' | 'SUPABASE_LOGOUT';
+  token?: string;
 };
 
 class FlowReaderContentScript {
@@ -69,14 +70,24 @@ class FlowReaderContentScript {
     const data = event.data as Partial<AuthBridgeMessage>;
     if (
       data.source !== 'tap-and-know-auth' ||
-      data.type !== 'SUPABASE_JWT' ||
-      typeof data.token !== 'string'
+      (data.type !== 'SUPABASE_JWT' && data.type !== 'SUPABASE_LOGOUT')
     )
       return;
 
+    if (data.type === 'SUPABASE_JWT') {
+      if (typeof data.token !== 'string' || data.token.length === 0) {
+        return;
+      }
+
+      void chrome.runtime.sendMessage({
+        type: 'FLOW_SET_JWT',
+        payload: { token: data.token },
+      });
+      return;
+    }
+
     void chrome.runtime.sendMessage({
-      type: 'FLOW_SET_JWT',
-      payload: { token: data.token },
+      type: 'FLOW_CLEAR_JWT',
     });
   };
 
@@ -122,6 +133,17 @@ class FlowReaderContentScript {
 
     if (this.lastLookupKey === lookupKey) return;
 
+    if (shouldExcludeDomain(window.location.hostname)) {
+      this.renderOverlay({
+        word,
+        meanings: ['이 페이지에서는 개인정보 보호를 위해 조회가 비활성화됩니다.'],
+        x,
+        y,
+        fomoMessage: null,
+      });
+      return;
+    }
+
     if (!this.canRequest()) {
       this.renderOverlay({
         word,
@@ -155,8 +177,11 @@ class FlowReaderContentScript {
       },
     });
 
-    const lookupData = this.extractLookupResult(workerResponse);
-    if (!lookupData) return;
+    const lookupData = this.extractLookupResult(workerResponse, word, x, y);
+    if (!lookupData) {
+      this.lastLookupKey = null;
+      return;
+    }
 
     this.setCachedLookup(lookupKey, {
       meanings: lookupData.meanings,
@@ -172,9 +197,21 @@ class FlowReaderContentScript {
   }
 
   private extractLookupResult(
-    response: ExtensionMessageResponse
+    response: ExtensionMessageResponse,
+    word: string,
+    x: number,
+    y: number,
   ): LookupResultPayload | null {
-    if (!response.ok) return null;
+    if (!response.ok) {
+      this.renderOverlay({
+        word,
+        meanings: [response.error.message || '조회에 실패했습니다.'],
+        x,
+        y,
+        fomoMessage: null,
+      });
+      return null;
+    }
     if (!('meanings' in response.data)) return null;
     return response.data;
   }

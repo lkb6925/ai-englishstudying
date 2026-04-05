@@ -5,6 +5,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { rankColorStyles, rankOrderValue } from '@/src/lib/rank';
 import type { Rank, WordbookEntry } from '@/src/lib/types';
 import { Check, X, RotateCw } from 'lucide-react';
+import { supabase } from '@/src/lib/supabase';
 
 type SwipeQuizProps = {
   words: WordbookEntry[];
@@ -26,17 +27,31 @@ export function SwipeQuiz({ words, onClose }: SwipeQuizProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const current = sortedWords[index] ?? null;
+  const currentMeanings = current?.meaning_snapshot?.length
+    ? current.meaning_snapshot
+    : ['저장된 의미가 아직 없습니다. 다시 조회해 최신 뜻을 저장해 보세요.'];
 
   const submitReview = async (action: ReviewAction) => {
     if (!current || isSubmitting) return;
 
     setIsSubmitting(true);
     try {
-      await fetch('/api/quiz-review', {
+      const session = supabase
+        ? await supabase.auth.getSession()
+        : { data: { session: null } };
+      const accessToken = session.data.session?.access_token;
+
+      const response = await fetch('/api/quiz-review', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+        },
         body: JSON.stringify({ entryId: current.id, action }),
       });
+      if (!response.ok) {
+        throw new Error(`Review request failed with status ${response.status}`);
+      }
       setIsBackVisible(false);
       setIndex((value) => value + 1);
     } catch (err) {
@@ -124,7 +139,17 @@ export function SwipeQuiz({ words, onClose }: SwipeQuizProps) {
                 <div className="flex-1">
                   <span className="text-xs font-bold uppercase tracking-widest text-slate-400">Meaning</span>
                   <div className="mt-4 space-y-4">
-                    <p className="text-2xl font-bold text-slate-900">문맥 속 의미 확인</p>
+                    <p className="text-2xl font-bold text-slate-900">문맥 속 의미</p>
+                    <ul className="space-y-3">
+                      {currentMeanings.map((meaning) => (
+                        <li
+                          key={meaning}
+                          className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-left text-slate-700"
+                        >
+                          {meaning}
+                        </li>
+                      ))}
+                    </ul>
                     <p className="text-slate-600">이 단어를 알고 계신가요?</p>
                   </div>
                 </div>
