@@ -3,6 +3,8 @@ import { Header } from '@/src/components/header';
 import { WordbookDashboard } from '@/src/components/wordbook-dashboard';
 import { useAuth, supabase } from '@/src/lib/supabase';
 import type { WordbookEntry, PlanTier } from '@/src/lib/types';
+import { Link } from 'react-router-dom';
+import { Button } from '@/src/components/ui/button';
 
 export function WordbookPage() {
   const { user, loading } = useAuth();
@@ -69,6 +71,3 @@ export function WordbookPage() {
     </div>
   );
 }
-
-import { Link } from 'react-router-dom';
-import { Button } from '@/src/components/ui/button';

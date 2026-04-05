@@ -1,7 +1,7 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { HomePage } from '@/src/pages/home';
-import { WordbookPage } from '@/src/pages/wordbook';
-import { AuthForm } from '@/src/components/auth-form';
+import { HomePage } from './src/pages/home';
+import { WordbookPage } from './src/pages/wordbook';
+import { AuthForm } from './src/components/auth-form';
 
 export default function App() {
   return (

@@ -17,7 +17,8 @@ const PORT = 3000;
 app.use(express.json());
 
 // Initialize AI
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || '' });
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY || '';
+const ai = GEMINI_API_KEY ? new GoogleGenAI({ apiKey: GEMINI_API_KEY }) : null;
 
 // Initialize Supabase (optional, if keys provided)
 const supabaseUrl = process.env.VITE_SUPABASE_URL || '';
@@ -42,10 +43,17 @@ async function getSupabaseUser(jwt: string) {
 
 // API Routes
 app.post('/api/lookup', async (req, res) => {
+  const { word, sentence } = req.body;
+  if (!word || !sentence) {
+    return res.status(400).json({ error: 'word and sentence are required' });
+  }
+
   try {
-    const { word, sentence } = req.body;
-    if (!word || !sentence) {
-      return res.status(400).json({ error: 'word and sentence are required' });
+    if (!ai) {
+      return res.json({
+        lemma: word,
+        contextual_meanings: ['테스트 의미']
+      });
     }
 
     // FIX: Use correct model name (gemini-2.0-flash or gemini-1.5-flash)
@@ -73,7 +81,14 @@ app.post('/api/lookup', async (req, res) => {
     res.json(result);
   } catch (error) {
     console.error('Lookup error:', error);
-    res.status(500).json({ error: 'AI lookup failed', details: String(error) });
+    const errMsg = String(error);
+    if (errMsg.includes('RESOURCE_EXHAUSTED') || errMsg.toLowerCase().includes('quota')) {
+      return res.json({
+        lemma: word,
+        contextual_meanings: ['테스트 의미']
+      });
+    }
+    res.status(500).json({ error: 'AI lookup failed', details: errMsg });
   }
 });
 

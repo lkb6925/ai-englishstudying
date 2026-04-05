@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { supabase } from '@/src/lib/supabase';
+import { supabase } from './src/lib/supabase';
 import { BookOpen, Mail, Lock, ArrowRight, Loader2 } from 'lucide-react';
 
 export function AuthForm() {
@@ -108,7 +108,7 @@ export function AuthForm() {
                   type="email"
                   placeholder="name@example.com"
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
                   required
                   className="w-full rounded-xl py-3 pl-10 pr-4 text-sm outline-none transition-all"
                   style={{
@@ -116,8 +116,8 @@ export function AuthForm() {
                     border: '1px solid rgba(255,255,255,0.1)',
                     color: 'var(--text-primary)',
                   }}
-                  onFocus={(e) => (e.currentTarget.style.borderColor = 'rgba(99,102,241,0.6)')}
-                  onBlur={(e) => (e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)')}
+                  onFocus={(e: React.FocusEvent<HTMLInputElement>) => (e.currentTarget.style.borderColor = 'rgba(99,102,241,0.6)')}
+                  onBlur={(e: React.FocusEvent<HTMLInputElement>) => (e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)')}
                 />
               </div>
             </div>
@@ -133,7 +133,7 @@ export function AuthForm() {
                   type="password"
                   placeholder="최소 6자"
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
                   required
                   className="w-full rounded-xl py-3 pl-10 pr-4 text-sm outline-none transition-all"
                   style={{
@@ -141,8 +141,8 @@ export function AuthForm() {
                     border: '1px solid rgba(255,255,255,0.1)',
                     color: 'var(--text-primary)',
                   }}
-                  onFocus={(e) => (e.currentTarget.style.borderColor = 'rgba(99,102,241,0.6)')}
-                  onBlur={(e) => (e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)')}
+                  onFocus={(e: React.FocusEvent<HTMLInputElement>) => (e.currentTarget.style.borderColor = 'rgba(99,102,241,0.6)')}
+                  onBlur={(e: React.FocusEvent<HTMLInputElement>) => (e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)')}
                 />
               </div>
             </div>

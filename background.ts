@@ -174,7 +174,7 @@ async function getModifier(): Promise<ModifierMode> {
 }
 
 chrome.runtime.onMessage.addListener(
-  (message, _sender, sendResponse) => {
+  (message: any, _sender: any, sendResponse: (response: any) => void) => {
     const handler = async (
       incoming: ExtensionMessage
     ): Promise<ExtensionMessageResponse> => {

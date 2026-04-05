@@ -2,8 +2,8 @@
 
 import { useMemo, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { rankOrderValue } from '@/src/lib/rank';
-import type { Rank, WordbookEntry } from '@/src/lib/types';
+import { rankOrderValue } from './src/lib/rank';
+import type { Rank, WordbookEntry } from './src/lib/types';
 import { Check, X, RotateCw, Trophy } from 'lucide-react';
 
 type SwipeQuizProps = {
