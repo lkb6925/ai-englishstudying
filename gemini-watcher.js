@@ -222,6 +222,20 @@ async function callGeminiAPI(prompt) {
   return text;
 }
 
+function getReadableErrorMessage(error) {
+  const message = error instanceof Error ? error.message : String(error);
+
+  if (
+    message.includes('RESOURCE_EXHAUSTED') ||
+    message.includes('HTTP 429') ||
+    message.toLowerCase().includes('quota')
+  ) {
+    return 'Gemini API quota is exhausted right now. Wait for quota reset or switch to a billed key, then save the file again.';
+  }
+
+  return message;
+}
+
 async function callWithRetry(prompt) {
   for (let attempt = 1; attempt <= CONFIG.RETRY_COUNT + 1; attempt += 1) {
     try {
@@ -236,7 +250,7 @@ async function callWithRetry(prompt) {
           CONFIG.RETRY_DELAY_MS / 1000
         }s`,
       );
-      log.dim(`  reason: ${error instanceof Error ? error.message : String(error)}`);
+      log.dim(`  reason: ${getReadableErrorMessage(error)}`);
       await new Promise((resolve) => setTimeout(resolve, CONFIG.RETRY_DELAY_MS));
     }
   }
@@ -317,7 +331,7 @@ async function processFeedback(filePath, filename) {
     writeFeedback(feedback);
     printSummary(filename, feedback);
   } catch (error) {
-    const message = error instanceof Error ? error.message : String(error);
+    const message = getReadableErrorMessage(error);
     log.error(`Gemini review failed: ${message}`);
     const fallback = `# Gemini Watcher Error
 
