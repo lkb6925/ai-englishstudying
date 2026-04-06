@@ -27,6 +27,10 @@ if [[ ! -f "package.json" ]]; then
   exit 0
 fi
 
+if [[ -x "scripts/install-git-hooks.sh" ]]; then
+  bash scripts/install-git-hooks.sh >/dev/null 2>&1 || true
+fi
+
 nohup npm run autopublish:github -- --allow-dirty-start >>"$LOG_FILE" 2>&1 &
 autopublish_pid=$!
 echo "$autopublish_pid" >"$PID_FILE"

@@ -6,6 +6,7 @@ import {
   type GitStatusEntry,
   type WorktreeGroup,
 } from './git-worktree-groups.ts';
+import { getBlockedPathReason } from './secret-rules.ts';
 
 type CliOptions = {
   allowDirtyStart: boolean;
@@ -45,8 +46,11 @@ function hasRemote(remoteName: string): boolean {
 }
 
 function isIgnoredPath(path: string): boolean {
-  return CONFIG.ignoredPaths.some((ignoredPath) =>
+  return (
+    getBlockedPathReason(path) !== null ||
+    CONFIG.ignoredPaths.some((ignoredPath) =>
     ignoredPath.endsWith('/') ? path.startsWith(ignoredPath) : path === ignoredPath,
+    )
   );
 }
 

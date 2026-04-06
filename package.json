@@ -10,10 +10,13 @@
     "watch:gemini": "node gemini-watcher.js",
     "preview": "vite preview",
     "lint": "tsc --noEmit",
+    "secrets:check": "tsx scripts/secret-guard.ts",
     "worktree:optimize": "tsx scripts/optimize-worktree.ts",
     "worktree:commit": "tsx scripts/commit-worktree.ts",
     "autopublish:github": "tsx scripts/autopublish-github.ts",
-    "autopublish:ensure": "bash scripts/ensure-autopublish-running.sh"
+    "autopublish:ensure": "bash scripts/ensure-autopublish-running.sh",
+    "hooks:install": "bash scripts/install-git-hooks.sh",
+    "history:rewrite-env-example": "bash scripts/rewrite-env-example-history.sh"
   },
   "dependencies": {
     "@google/genai": "^1.48.0",
