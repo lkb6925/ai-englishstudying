@@ -8,3 +8,8 @@ coverage/
 gemini_feedback.md
 .env*
 !.env.example
+env.download
+*.pem
+*.key
+*.p12
+*.pfx
