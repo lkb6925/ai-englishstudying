@@ -9,7 +9,11 @@
     "build-extension": "vite build --config vite.extension.config.ts",
     "watch:gemini": "node gemini-watcher.js",
     "preview": "vite preview",
-    "lint": "tsc --noEmit"
+    "lint": "tsc --noEmit",
+    "worktree:optimize": "tsx scripts/optimize-worktree.ts",
+    "worktree:commit": "tsx scripts/commit-worktree.ts",
+    "autopublish:github": "tsx scripts/autopublish-github.ts",
+    "autopublish:ensure": "bash scripts/ensure-autopublish-running.sh"
   },
   "dependencies": {
     "@google/genai": "^1.48.0",

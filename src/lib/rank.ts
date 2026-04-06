@@ -8,6 +8,8 @@ const lookupRankThresholds: Array<{ minCount: number; rank: Rank }> = [
   { minCount: 12, rank: 'red' },
 ];
 
+const reviewScale: Rank[] = ['red', 'orange', 'yellow', 'green', 'blue', 'master'];
+
 export const rankColorStyles: Record<Rank, string> = {
   blue: 'text-sky-700 bg-sky-100',
   green: 'text-emerald-700 bg-emerald-100',
@@ -32,6 +34,10 @@ export function getRankFromLookupCount(lookupCount: number): Rank {
   return resolvedRank;
 }
 
+export function getRankFromCount(count: number): Rank {
+  return getRankFromLookupCount(count);
+}
+
 export function rankOrderValue(rank: Rank): number {
   const order: Record<Rank, number> = {
     red: 0,
@@ -44,8 +50,6 @@ export function rankOrderValue(rank: Rank): number {
 
   return order[rank];
 }
-
-const reviewScale: Rank[] = ['red', 'orange', 'yellow', 'green', 'blue', 'master'];
 
 export function decreaseDangerRank(rank: Rank): Rank {
   const index = reviewScale.indexOf(rank);

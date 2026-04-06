@@ -6,15 +6,18 @@ import type {
   ModifierMode,
 } from './messages';
 import { resolveApiBaseUrl, resolveAppOrigin } from './app-config';
+import {
+  extensionStorageKeys,
+  readStorageValue,
+  removeStorageValue,
+  writeStorageValue,
+} from './extension-storage';
 
 const defaultAppUrl = resolveAppOrigin(import.meta.env.VITE_APP_URL);
 const defaultApiBaseUrl = resolveApiBaseUrl(
   import.meta.env.VITE_API_BASE_URL,
   import.meta.env.VITE_APP_URL,
 );
-const modifierStorageKey = 'flow_reader_modifier';
-const jwtStorageKey = 'supabase_jwt';
-const guestStatsStorageKey = 'flow_reader_guest_stats';
 
 type LookupApiResponse = {
   contextual_meanings: string[];
@@ -27,15 +30,75 @@ type LookupEventApiResponse = {
   reason?: 'unauthorized' | 'excluded_domain';
 };
 
+type ApiErrorResponse = {
+  error?: string;
+  details?: string;
+};
+
 type GuestStatsStorage = {
   total: number;
   terms: Record<string, number>;
   shownCount: number;
 };
 
+function isStringArray(value: unknown): value is string[] {
+  return Array.isArray(value) && value.every((item) => typeof item === 'string');
+}
+
+function isLookupApiResponse(value: unknown): value is LookupApiResponse {
+  if (!value || typeof value !== 'object') {
+    return false;
+  }
+
+  const candidate = value as Record<string, unknown>;
+  return isStringArray(candidate.contextual_meanings);
+}
+
+function isLookupEventApiResponse(value: unknown): value is LookupEventApiResponse {
+  if (!value || typeof value !== 'object') {
+    return false;
+  }
+
+  const candidate = value as Record<string, unknown>;
+  if (
+    typeof candidate.persisted !== 'boolean' ||
+    typeof candidate.promoted !== 'boolean' ||
+    typeof candidate.totalLookupCount !== 'number'
+  ) {
+    return false;
+  }
+
+  return (
+    candidate.reason === undefined ||
+    candidate.reason === 'unauthorized' ||
+    candidate.reason === 'excluded_domain'
+  );
+}
+
+async function getApiErrorMessage(
+  response: Response,
+  fallbackMessage: string,
+): Promise<string> {
+  try {
+    const payload = (await response.json()) as ApiErrorResponse;
+    if (typeof payload.error === 'string' && payload.error.length > 0) {
+      return payload.error;
+    }
+    if (typeof payload.details === 'string' && payload.details.length > 0) {
+      return payload.details;
+    }
+  } catch {
+    // ignore malformed error bodies and use the fallback below
+  }
+
+  return fallbackMessage;
+}
+
 async function getApiBaseUrl(): Promise<string> {
-  const storage = await chrome.storage.sync.get('flow_reader_api_base_url');
-  const value = storage.flow_reader_api_base_url;
+  const value = await readStorageValue<string>(
+    chrome.storage.sync,
+    extensionStorageKeys.apiBaseUrl,
+  );
   if (typeof value === 'string' && value.length > 0) {
     return value.replace(/\/$/, '');
   }
@@ -43,13 +106,17 @@ async function getApiBaseUrl(): Promise<string> {
 }
 
 async function getAuthToken(): Promise<string | null> {
-  const sessionValues = await chrome.storage.session.get(jwtStorageKey);
-  const sessionToken = sessionValues[jwtStorageKey];
+  const sessionToken = await readStorageValue<string>(
+    chrome.storage.session,
+    extensionStorageKeys.jwt,
+  );
   if (typeof sessionToken === 'string' && sessionToken.length > 0) {
     return sessionToken;
   }
-  const localValues = await chrome.storage.local.get(jwtStorageKey);
-  const localToken = localValues[jwtStorageKey];
+  const localToken = await readStorageValue<string>(
+    chrome.storage.local,
+    extensionStorageKeys.jwt,
+  );
   if (typeof localToken === 'string' && localToken.length > 0) {
     return localToken;
   }
@@ -64,8 +131,10 @@ async function buildHeaders(): Promise<HeadersInit> {
 }
 
 async function readGuestStats(): Promise<GuestStatsStorage> {
-  const values = await chrome.storage.local.get(guestStatsStorageKey);
-  const raw = values[guestStatsStorageKey];
+  const raw = await readStorageValue<unknown>(
+    chrome.storage.local,
+    extensionStorageKeys.guestStats,
+  );
   if (typeof raw !== 'object' || raw === null) {
     return { total: 0, terms: {}, shownCount: 0 };
   }
@@ -106,13 +175,11 @@ async function recordGuestLookup(term: string): Promise<GuestStats> {
     stats.shownCount,
     term
   );
-  await chrome.storage.local.set({
-    [guestStatsStorageKey]: {
-      total: nextTotal,
-      terms: { ...stats.terms, [key]: nextTermCount },
-      shownCount: fomoMessage ? stats.shownCount + 1 : stats.shownCount,
-    } satisfies GuestStatsStorage,
-  });
+  await writeStorageValue(chrome.storage.local, extensionStorageKeys.guestStats, {
+    total: nextTotal,
+    terms: { ...stats.terms, [key]: nextTermCount },
+    shownCount: fomoMessage ? stats.shownCount + 1 : stats.shownCount,
+  } satisfies GuestStatsStorage);
   return { total: nextTotal, termCount: nextTermCount, fomoMessage };
 }
 
@@ -131,11 +198,24 @@ async function handleLookup(
   if (!lookupResponse.ok) {
     return {
       ok: false,
-      error: { message: `Lookup failed with status ${lookupResponse.status}` },
+      error: {
+        message: await getApiErrorMessage(
+          lookupResponse,
+          `Lookup failed with status ${lookupResponse.status}`,
+        ),
+      },
     };
   }
 
-  const lookupData = (await lookupResponse.json()) as LookupApiResponse;
+  const lookupPayload = await lookupResponse.json();
+  if (!isLookupApiResponse(lookupPayload)) {
+    return {
+      ok: false,
+      error: { message: 'Lookup response shape was invalid.' },
+    };
+  }
+
+  const lookupData = lookupPayload;
 
   const eventResponse = await fetch(`${apiBaseUrl}/api/lookup-event`, {
     method: 'POST',
@@ -153,8 +233,15 @@ async function handleLookup(
   let guestStats: GuestStats | null = null;
 
   if (eventResponse.ok) {
-    lookupEvent = (await eventResponse.json()) as LookupEventApiResponse;
+    const eventPayload = await eventResponse.json();
+    if (isLookupEventApiResponse(eventPayload)) {
+      lookupEvent = eventPayload;
+    } else {
+      console.warn('Flow Reader lookup-event response shape was invalid.', eventPayload);
+    }
+
     if (
+      lookupEvent &&
       !lookupEvent.persisted &&
       lookupEvent.reason === 'unauthorized'
     ) {
@@ -173,15 +260,17 @@ async function handleLookup(
 }
 
 async function getModifier(): Promise<ModifierMode> {
-  const values = await chrome.storage.sync.get(modifierStorageKey);
-  const modifier = values[modifierStorageKey];
+  const modifier = await readStorageValue<unknown>(
+    chrome.storage.sync,
+    extensionStorageKeys.modifier,
+  );
   if (modifier === 'cmd_ctrl' || modifier === 'alt_option') return modifier;
   return 'alt_option';
 }
 
 async function clearAuthToken(): Promise<void> {
-  await chrome.storage.session.remove(jwtStorageKey);
-  await chrome.storage.local.remove(jwtStorageKey);
+  await removeStorageValue(chrome.storage.session, extensionStorageKeys.jwt);
+  await removeStorageValue(chrome.storage.local, extensionStorageKeys.jwt);
 }
 
 chrome.runtime.onMessage.addListener(
@@ -208,18 +297,24 @@ chrome.runtime.onMessage.addListener(
         };
       }
       if (incoming.type === 'FLOW_SET_MODIFIER') {
-        await chrome.storage.sync.set({
-          [modifierStorageKey]: incoming.payload.modifier,
-        });
+        await writeStorageValue(
+          chrome.storage.sync,
+          extensionStorageKeys.modifier,
+          incoming.payload.modifier,
+        );
         return { ok: true, data: { modifier: incoming.payload.modifier } };
       }
       if (incoming.type === 'FLOW_SET_JWT') {
-        await chrome.storage.session.set({
-          [jwtStorageKey]: incoming.payload.token,
-        });
-        await chrome.storage.local.set({
-          [jwtStorageKey]: incoming.payload.token,
-        });
+        await writeStorageValue(
+          chrome.storage.session,
+          extensionStorageKeys.jwt,
+          incoming.payload.token,
+        );
+        await writeStorageValue(
+          chrome.storage.local,
+          extensionStorageKeys.jwt,
+          incoming.payload.token,
+        );
         return { ok: true, data: { saved: true } };
       }
       if (incoming.type === 'FLOW_CLEAR_JWT') {
