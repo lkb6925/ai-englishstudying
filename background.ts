@@ -13,10 +13,16 @@ import {
   writeStorageValue,
 } from './extension-storage';
 
-const defaultAppUrl = resolveAppOrigin(import.meta.env.VITE_APP_URL);
+const defaultAppUrl = resolveAppOrigin(
+  import.meta.env.VITE_APP_URL,
+  import.meta.env.VITE_CODESPACE_NAME,
+  import.meta.env.VITE_CODESPACES_PORT_FORWARDING_DOMAIN,
+);
 const defaultApiBaseUrl = resolveApiBaseUrl(
   import.meta.env.VITE_API_BASE_URL,
   import.meta.env.VITE_APP_URL,
+  import.meta.env.VITE_CODESPACE_NAME,
+  import.meta.env.VITE_CODESPACES_PORT_FORWARDING_DOMAIN,
 );
 
 type LookupApiResponse = {

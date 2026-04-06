@@ -249,10 +249,20 @@ function copyExtensionAssets({ appUrl, apiBaseUrl }: ExtensionPluginOptions) {
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, '.', '');
-  const appUrl = resolveAppOrigin(env.VITE_APP_URL || env.APP_URL);
+  const codespaceName = env.VITE_CODESPACE_NAME || env.CODESPACE_NAME;
+  const forwardingDomain =
+    env.VITE_CODESPACES_PORT_FORWARDING_DOMAIN ||
+    env.GITHUB_CODESPACES_PORT_FORWARDING_DOMAIN;
+  const appUrl = resolveAppOrigin(
+    env.VITE_APP_URL || env.APP_URL,
+    codespaceName,
+    forwardingDomain,
+  );
   const apiBaseUrl = resolveApiBaseUrl(
     env.VITE_API_BASE_URL || env.API_BASE_URL,
     env.VITE_APP_URL || env.APP_URL,
+    codespaceName,
+    forwardingDomain,
   );
 
   return {

@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+export VITE_CODESPACE_NAME="${VITE_CODESPACE_NAME:-${CODESPACE_NAME:-}}"
+export VITE_CODESPACES_PORT_FORWARDING_DOMAIN="${VITE_CODESPACES_PORT_FORWARDING_DOMAIN:-${GITHUB_CODESPACES_PORT_FORWARDING_DOMAIN:-}}"
+
+vite build --config vite.extension.config.ts

@@ -1,12 +1,22 @@
 import type { ModifierMode, RuntimeConfigPayload } from './messages';
 import { getWordbookUrl, resolveApiBaseUrl, resolveAppOrigin } from './app-config';
 
-const fallbackAppUrl = resolveAppOrigin(import.meta.env.VITE_APP_URL);
+const fallbackAppUrl = resolveAppOrigin(
+  import.meta.env.VITE_APP_URL,
+  import.meta.env.VITE_CODESPACE_NAME,
+  import.meta.env.VITE_CODESPACES_PORT_FORWARDING_DOMAIN,
+);
 const fallbackApiBaseUrl = resolveApiBaseUrl(
   import.meta.env.VITE_API_BASE_URL,
   import.meta.env.VITE_APP_URL,
+  import.meta.env.VITE_CODESPACE_NAME,
+  import.meta.env.VITE_CODESPACES_PORT_FORWARDING_DOMAIN,
 );
-const fallbackWordbookUrl = getWordbookUrl(import.meta.env.VITE_APP_URL);
+const fallbackWordbookUrl = getWordbookUrl(
+  import.meta.env.VITE_APP_URL,
+  import.meta.env.VITE_CODESPACE_NAME,
+  import.meta.env.VITE_CODESPACES_PORT_FORWARDING_DOMAIN,
+);
 
 function setModifierUI(modifier: ModifierMode) {
   const modifierText = document.getElementById('modifier-text');

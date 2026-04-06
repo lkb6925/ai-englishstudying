@@ -45,6 +45,7 @@ npm run build-extension
 
 - `dist-extension/` 폴더가 생성됩니다.
 - `dist-extension/manifest.json`은 환경변수를 기준으로 자동 생성됩니다.
+- GitHub Codespaces에서 빌드하면 `localhost` 대신 공개 포트 URL을 자동 기본값으로 사용합니다.
 - Chrome의 `chrome://extensions`에서 개발자 모드를 켠 뒤 `dist-extension/` 폴더를 불러옵니다.
 
 원격 개발 환경에서 로컬 Chrome에 설치해야 한다면 zip으로 내려받는 쪽이 더 편합니다.

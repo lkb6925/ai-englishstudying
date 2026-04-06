@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "tsx server.ts",
     "build": "vite build",
-    "build-extension": "vite build --config vite.extension.config.ts",
+    "build-extension": "bash scripts/build-extension.sh",
     "package-extension": "bash scripts/package-extension.sh",
     "watch:gemini": "node gemini-watcher.js",
     "preview": "vite preview",

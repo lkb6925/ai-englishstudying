@@ -5,6 +5,8 @@ import { resolveApiBaseUrl } from './app-config';
 const defaultApiBaseUrl = resolveApiBaseUrl(
   import.meta.env.VITE_API_BASE_URL,
   import.meta.env.VITE_APP_URL,
+  import.meta.env.VITE_CODESPACE_NAME,
+  import.meta.env.VITE_CODESPACES_PORT_FORWARDING_DOMAIN,
 );
 
 type OptionsState = {

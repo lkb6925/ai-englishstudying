@@ -13,6 +13,8 @@ const MAX_REQ_PER_MINUTE = 10;
 const CACHE_TTL_MS = 24 * 60 * 60 * 1000;
 const trustedAuthBridgeOrigins = getTrustedAuthBridgeOrigins(
   import.meta.env.VITE_APP_URL,
+  import.meta.env.VITE_CODESPACE_NAME,
+  import.meta.env.VITE_CODESPACES_PORT_FORWARDING_DOMAIN,
 );
 
 class FlowReaderContentScript {
