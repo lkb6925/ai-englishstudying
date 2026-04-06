@@ -1,6 +1,11 @@
+import { useMemo, useState } from 'react';
 import { Button } from '@/src/components/ui/button';
 import { rankOrderValue } from '@/src/lib/rank';
 import type { PlanTier, Rank, WordbookEntry } from '@/src/lib/types';
+import {
+  filterAndSortWords,
+  type WordbookSort,
+} from '@/src/lib/wordbook';
 
 type GroupedWords = Record<Rank, WordbookEntry[]>;
 
@@ -36,17 +41,87 @@ function groupWords(words: WordbookEntry[]): GroupedWords {
 }
 
 export function WordbookList({ words, planTier }: WordbookListProps) {
-  const grouped = groupWords(words);
-  const orderedRanks = (Object.keys(grouped) as Rank[]).sort(
-    (left, right) => rankOrderValue(left) - rankOrderValue(right),
-  );
+  const [query, setQuery] = useState('');
+  const [selectedRank, setSelectedRank] = useState<Rank | 'all'>('all');
+  const [sort, setSort] = useState<WordbookSort>('recent');
   const isPremium = planTier === 'premium';
+  const filteredWords = useMemo(
+    () =>
+      filterAndSortWords(words, {
+        query,
+        rank: selectedRank,
+        sort,
+      }),
+    [query, selectedRank, sort, words],
+  );
+  const grouped = useMemo(() => groupWords(filteredWords), [filteredWords]);
+  const orderedRanks = useMemo(
+    () =>
+      (Object.keys(rankLabels) as Rank[]).sort(
+        (left, right) => rankOrderValue(left) - rankOrderValue(right),
+      ),
+    [],
+  );
 
   return (
     <section className="relative rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
-      <h1 className="mb-6 text-2xl font-bold text-slate-900">My Wordbook</h1>
+      <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-slate-900">My Wordbook</h1>
+          <p className="mt-2 text-slate-500">
+            {filteredWords.length} / {words.length} words shown
+          </p>
+        </div>
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          <label className="space-y-2">
+            <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
+              Search
+            </span>
+            <input
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              placeholder="word, meaning, context"
+              className="h-11 w-full rounded-xl border border-slate-200 bg-white px-4 text-sm outline-none transition focus:border-primary"
+            />
+          </label>
+          <label className="space-y-2">
+            <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
+              Rank
+            </span>
+            <select
+              value={selectedRank}
+              onChange={(event) =>
+                setSelectedRank(event.target.value as Rank | 'all')
+              }
+              className="h-11 w-full rounded-xl border border-slate-200 bg-white px-4 text-sm outline-none transition focus:border-primary"
+            >
+              <option value="all">All ranks</option>
+              {orderedRanks.map((rank) => (
+                <option key={rank} value={rank}>
+                  {rankLabels[rank]}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="space-y-2">
+            <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
+              Sort
+            </span>
+            <select
+              value={sort}
+              onChange={(event) => setSort(event.target.value as WordbookSort)}
+              className="h-11 w-full rounded-xl border border-slate-200 bg-white px-4 text-sm outline-none transition focus:border-primary"
+            >
+              <option value="recent">Recently seen</option>
+              <option value="lookups">Most lookups</option>
+              <option value="rank">Highest risk first</option>
+              <option value="alphabetical">Alphabetical</option>
+            </select>
+          </label>
+        </div>
+      </div>
       
-      <div className={isPremium ? '' : 'pointer-events-none select-none blur-md'}>
+      <div className={`mt-8 ${isPremium ? '' : 'pointer-events-none select-none blur-md'}`}>
         <div className="space-y-10">
           {orderedRanks.map((rank) => {
             const items = grouped[rank];
@@ -81,6 +156,15 @@ export function WordbookList({ words, planTier }: WordbookListProps) {
               </article>
             );
           })}
+
+          {filteredWords.length === 0 ? (
+            <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-6 py-12 text-center">
+              <p className="text-lg font-bold text-slate-900">No matching words</p>
+              <p className="mt-2 text-slate-500">
+                검색어, 랭크, 정렬 조건을 바꿔 보세요.
+              </p>
+            </div>
+          ) : null}
         </div>
       </div>
 
