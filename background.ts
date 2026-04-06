@@ -287,12 +287,13 @@ chrome.runtime.onMessage.addListener(
       }
       if (incoming.type === 'FLOW_GET_RUNTIME_CONFIG') {
         const modifier = await getModifier();
+        const apiBaseUrl = await getApiBaseUrl();
         return {
           ok: true,
           data: {
             modifier,
-            appUrl: defaultAppUrl,
-            apiBaseUrl: defaultApiBaseUrl,
+            appUrl: apiBaseUrl || defaultAppUrl,
+            apiBaseUrl: apiBaseUrl || defaultApiBaseUrl,
           },
         };
       }

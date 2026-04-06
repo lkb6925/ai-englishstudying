@@ -149,33 +149,6 @@
     <p class="meta" id="api-base-url"></p>
   </div>
 
-  <script>
-    chrome.runtime.sendMessage({ type: 'FLOW_GET_RUNTIME_CONFIG' }).then((response) => {
-      const runtime = response?.ok ? response.data : null;
-      const modifier = runtime?.modifier || 'alt_option';
-      const appUrl = runtime?.appUrl || '';
-      const apiBaseUrl = runtime?.apiBaseUrl || '';
-
-      document.getElementById('modifier-text').textContent =
-        modifier === 'cmd_ctrl'
-          ? 'Cmd / Ctrl + 마우스 올리기'
-          : 'Alt / Option + 마우스 올리기';
-      document.querySelector('.key-icon').textContent =
-        modifier === 'cmd_ctrl' ? '⌘' : '⌥';
-      document.getElementById('api-base-url').textContent =
-        apiBaseUrl ? 'API: ' + apiBaseUrl : '';
-
-      document.getElementById('wordbook-btn').addEventListener('click', () => {
-        if (!appUrl) {
-          return;
-        }
-        chrome.tabs.create({ url: appUrl.replace(/\/$/, '') + '/wordbook' });
-      });
-    });
-
-    document.getElementById('options-btn').addEventListener('click', () => {
-      chrome.runtime.openOptionsPage();
-    });
-  </script>
+  <script type="module" src="popup.js"></script>
 </body>
 </html>

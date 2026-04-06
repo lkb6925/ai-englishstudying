@@ -208,43 +208,7 @@ function copyExtensionAssets({ appUrl, apiBaseUrl }: ExtensionPluginOptions) {
     <p class="meta" id="api-base-url"></p>
   </div>
 
-  <script>
-    const fallbackWordbookUrl = ${JSON.stringify(getWordbookUrl(appUrl))};
-    const fallbackApiBaseUrl = ${JSON.stringify(apiBaseUrl)};
-
-    chrome.runtime.sendMessage({ type: 'FLOW_GET_RUNTIME_CONFIG' }).then((response) => {
-      const modifierText = document.getElementById('modifier-text');
-      const icon = document.querySelector('.key-icon');
-      const apiBaseUrl = document.getElementById('api-base-url');
-      const wordbookButton = document.getElementById('wordbook-btn');
-
-      const runtime = response?.ok && response.data ? response.data : null;
-      const modifier = runtime?.modifier || 'alt_option';
-      const appUrl = runtime?.appUrl || ${JSON.stringify(appUrl)};
-      const apiUrl = runtime?.apiBaseUrl || fallbackApiBaseUrl;
-
-      modifierText.textContent =
-        modifier === 'cmd_ctrl'
-          ? 'Cmd / Ctrl + 마우스 올리기'
-          : 'Alt / Option + 마우스 올리기';
-      icon.textContent = modifier === 'cmd_ctrl' ? '⌘' : '⌥';
-      apiBaseUrl.textContent = 'API: ' + apiUrl;
-
-      wordbookButton.addEventListener('click', () => {
-        chrome.tabs.create({ url: appUrl.replace(/\\/$/, '') + '/wordbook' });
-      });
-    }).catch(() => {
-      const apiBaseUrl = document.getElementById('api-base-url');
-      apiBaseUrl.textContent = 'API: ' + fallbackApiBaseUrl;
-      document.getElementById('wordbook-btn').addEventListener('click', () => {
-        chrome.tabs.create({ url: fallbackWordbookUrl });
-      });
-    });
-
-    document.getElementById('options-btn').addEventListener('click', () => {
-      chrome.runtime.openOptionsPage();
-    });
-  </script>
+  <script type="module" src="popup.js"></script>
 </body>
 </html>`;
       await fs.writeFile(
@@ -296,10 +260,11 @@ export default defineConfig(({ mode }) => {
       outDir: 'dist-extension',
       lib: {
         entry: {
-          background: path.resolve(__dirname, 'background.ts'),
-          content: path.resolve(__dirname, 'content.tsx'),
-          options: path.resolve(__dirname, 'options.tsx'),
-        },
+        background: path.resolve(__dirname, 'background.ts'),
+        content: path.resolve(__dirname, 'content.tsx'),
+        options: path.resolve(__dirname, 'options.tsx'),
+        popup: path.resolve(__dirname, 'popup.ts'),
+      },
         formats: ['es'],
       },
       rollupOptions: {
