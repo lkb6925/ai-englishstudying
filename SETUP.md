@@ -47,6 +47,16 @@ npm run build-extension
 - `dist-extension/manifest.json`은 환경변수를 기준으로 자동 생성됩니다.
 - Chrome의 `chrome://extensions`에서 개발자 모드를 켠 뒤 `dist-extension/` 폴더를 불러옵니다.
 
+원격 개발 환경에서 로컬 Chrome에 설치해야 한다면 zip으로 내려받는 쪽이 더 편합니다.
+
+```bash
+npm run package-extension
+```
+
+- 루트에 `flow-reader-extension.zip`이 생성됩니다.
+- 이 zip을 로컬 컴퓨터로 다운로드한 뒤 압축을 풉니다.
+- Chrome의 `chrome://extensions`에서 개발자 모드를 켠 뒤, 압축 해제된 폴더를 선택합니다.
+
 ## Supabase 스키마
 
 `supabase-schema.sql`을 SQL Editor에서 실행합니다.
