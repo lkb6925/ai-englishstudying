@@ -1,19 +1,21 @@
+'use client';
+
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/src/components/ui/button';
-import { supabase } from '@/src/lib/supabase';
 import { syncExtensionJwt } from '@/src/lib/extension-bridge';
+import { supabase } from '@/src/lib/supabase';
 
 export function AuthForm() {
-  const navigate = useNavigate();
+  const router = useRouter();
   const [mode, setMode] = useState<'login' | 'signup'>('login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
     if (!supabase) {
       setError('Supabase is not configured.');
       return;
@@ -24,65 +26,81 @@ export function AuthForm() {
 
     try {
       if (mode === 'login') {
-        const { data, error: loginError } = await supabase.auth.signInWithPassword({ email, password });
-        if (loginError) throw loginError;
-        
+        const { data, error: loginError } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
+        if (loginError) {
+          throw loginError;
+        }
+
         if (data.session?.access_token) {
           syncExtensionJwt(data.session.access_token);
         }
       } else {
-        const { error: signupError } = await supabase.auth.signUp({ email, password });
-        if (signupError) throw signupError;
+        const { error: signupError } = await supabase.auth.signUp({
+          email,
+          password,
+        });
+        if (signupError) {
+          throw signupError;
+        }
       }
-      navigate('/');
-    } catch (err: any) {
-      setError(err.message);
+
+      router.push('/');
+      router.refresh();
+    } catch (caughtError) {
+      setError(
+        caughtError instanceof Error ? caughtError.message : '인증에 실패했습니다.',
+      );
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="mx-auto w-full max-w-md space-y-6 rounded-2xl border border-border bg-white p-8 shadow-lg">
+    <div className="mx-auto w-full max-w-md space-y-6 rounded-2xl border border-slate-200 bg-white p-8 shadow-lg">
       <div className="space-y-2 text-center">
         <h1 className="text-2xl font-bold tracking-tight">
           {mode === 'login' ? 'Welcome back' : 'Create an account'}
         </h1>
-        <p className="text-sm text-muted-foreground">
-          {mode === 'login' ? 'Enter your credentials to access your wordbook' : 'Sign up to start tracking your reading'}
+        <p className="text-sm text-slate-500">
+          {mode === 'login'
+            ? 'Enter your credentials to access your wordbook'
+            : 'Sign up to start tracking your reading'}
         </p>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="space-y-2">
-          <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70" htmlFor="email">
+          <label className="text-sm font-medium" htmlFor="email">
             Email
           </label>
           <input
             id="email"
             type="email"
-            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+            className="flex h-10 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm outline-none ring-offset-background transition focus:border-slate-400 disabled:cursor-not-allowed disabled:opacity-50"
             placeholder="name@example.com"
             value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            onChange={(event) => setEmail(event.target.value)}
             required
           />
         </div>
         <div className="space-y-2">
-          <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70" htmlFor="password">
+          <label className="text-sm font-medium" htmlFor="password">
             Password
           </label>
           <input
             id="password"
             type="password"
-            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+            className="flex h-10 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm outline-none ring-offset-background transition focus:border-slate-400 disabled:cursor-not-allowed disabled:opacity-50"
             value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            onChange={(event) => setPassword(event.target.value)}
             required
           />
         </div>
 
-        {error && <p className="text-sm font-medium text-destructive">{error}</p>}
+        {error ? <p className="text-sm font-medium text-red-600">{error}</p> : null}
 
         <Button className="w-full" type="submit" disabled={loading}>
           {loading ? 'Processing...' : mode === 'login' ? 'Login' : 'Sign Up'}
@@ -92,10 +110,12 @@ export function AuthForm() {
       <div className="text-center">
         <button
           type="button"
-          className="text-sm text-muted-foreground hover:underline"
+          className="text-sm text-slate-500 hover:underline"
           onClick={() => setMode(mode === 'login' ? 'signup' : 'login')}
         >
-          {mode === 'login' ? "Don't have an account? Sign up" : 'Already have an account? Login'}
+          {mode === 'login'
+            ? "Don't have an account? Sign up"
+            : 'Already have an account? Login'}
         </button>
       </div>
     </div>

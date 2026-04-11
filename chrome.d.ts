@@ -13,6 +13,9 @@ declare namespace chrome {
     export function getURL(path: string): string;
     export function openOptionsPage(): void;
   }
+  export namespace tabs {
+    export function create(createProperties: { url: string }): Promise<void>;
+  }
   export namespace storage {
     export const sync: {
       get: (keys: string | string[] | null) => Promise<any>;

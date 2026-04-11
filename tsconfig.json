@@ -3,19 +3,71 @@
     "target": "ES2022",
     "experimentalDecorators": true,
     "useDefineForClassFields": false,
-    "module": "ESNext",
-    "lib": ["ES2022", "DOM", "DOM.Iterable"],
-    "skipLibCheck": true,
-    "moduleResolution": "bundler",
-    "isolatedModules": true,
-    "moduleDetection": "force",
+    "lib": [
+      "ES2022",
+      "DOM",
+      "DOM.Iterable"
+    ],
     "allowJs": true,
-    "jsx": "react-jsx",
-    "paths": {
-      "@/*": ["./*"]
-    },
+    "skipLibCheck": true,
+    "strict": true,
+    "noEmit": true,
     "allowImportingTsExtensions": true,
-    "noEmit": true
+    "esModuleInterop": true,
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "jsx": "react-jsx",
+    "incremental": true,
+    "baseUrl": ".",
+    "paths": {
+      "@/*": [
+        "./*"
+      ]
+    },
+    "types": [
+      "vitest/globals",
+      "@testing-library/jest-dom"
+    ],
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ]
   },
-  "include": ["src", "extension", "chrome.d.ts", "background.ts", "server.ts", "vite.config.ts", "vite.extension.config.ts"]
+  "include": [
+    "next-env.d.ts",
+    "app",
+    "src",
+    "background.ts",
+    "content.tsx",
+    "content-lookup.ts",
+    "content-overlay.ts",
+    "content-events.ts",
+    "lookup-cache.ts",
+    "extension-storage.ts",
+    "messages.ts",
+    "app-config.ts",
+    "options.tsx",
+    "popup.ts",
+    "text.ts",
+    "chrome.d.ts",
+    "vite.extension.config.ts",
+    "playwright.config.ts",
+    "tests",
+    "scripts",
+    ".next/types/**/*.ts",
+    ".next/dev/types/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "dist-extension",
+    "server",
+    "server.ts",
+    "vite.config.ts",
+    "src/main.tsx",
+    "src/App.tsx"
+  ]
 }

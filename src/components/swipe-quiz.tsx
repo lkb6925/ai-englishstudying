@@ -1,11 +1,12 @@
 'use client';
 
+import React from 'react';
 import { useMemo, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
+import { Check, RotateCw, X } from 'lucide-react';
 import { rankColorStyles, rankOrderValue } from '@/src/lib/rank';
-import type { Rank, WordbookEntry } from '@/src/lib/types';
-import { Check, X, RotateCw } from 'lucide-react';
 import { supabase } from '@/src/lib/supabase';
+import type { Rank, WordbookEntry } from '@/src/lib/types';
 
 type SwipeQuizProps = {
   words: WordbookEntry[];
@@ -19,7 +20,7 @@ const swipeThreshold = 100;
 export function SwipeQuiz({ words, onClose }: SwipeQuizProps) {
   const sortedWords = useMemo(
     () => [...words].sort((left, right) => rankOrderValue(left.rank) - rankOrderValue(right.rank)),
-    [words]
+    [words],
   );
 
   const [index, setIndex] = useState(0);
@@ -32,7 +33,9 @@ export function SwipeQuiz({ words, onClose }: SwipeQuizProps) {
     : ['저장된 의미가 아직 없습니다. 다시 조회해 최신 뜻을 저장해 보세요.'];
 
   const submitReview = async (action: ReviewAction) => {
-    if (!current || isSubmitting) return;
+    if (!current || isSubmitting) {
+      return;
+    }
 
     setIsSubmitting(true);
     try {
@@ -49,13 +52,15 @@ export function SwipeQuiz({ words, onClose }: SwipeQuizProps) {
         },
         body: JSON.stringify({ entryId: current.id, action }),
       });
+
       if (!response.ok) {
         throw new Error(`Review request failed with status ${response.status}`);
       }
+
       setIsBackVisible(false);
       setIndex((value) => value + 1);
-    } catch (err) {
-      console.error('Review submission failed', err);
+    } catch (error) {
+      console.error('Review submission failed', error);
     } finally {
       setIsSubmitting(false);
     }
@@ -113,10 +118,11 @@ export function SwipeQuiz({ words, onClose }: SwipeQuizProps) {
             }}
           >
             <div
-              className={`relative h-full w-full rounded-2xl border-2 border-slate-100 bg-white p-8 shadow-xl transition-all duration-500 preserve-3d ${isBackVisible ? 'rotate-y-180' : ''}`}
+              className={`relative h-full w-full rounded-2xl border-2 border-slate-100 bg-white p-8 shadow-xl transition-all duration-500 preserve-3d ${
+                isBackVisible ? 'rotate-y-180' : ''
+              }`}
               onClick={() => setIsBackVisible(!isBackVisible)}
             >
-              {/* Front Side */}
               <div className="absolute inset-0 flex flex-col p-8 backface-hidden">
                 <div className="flex-1">
                   <span className="text-xs font-bold uppercase tracking-widest text-slate-400">Word</span>
@@ -134,7 +140,6 @@ export function SwipeQuiz({ words, onClose }: SwipeQuizProps) {
                 </div>
               </div>
 
-              {/* Back Side */}
               <div className="absolute inset-0 flex flex-col p-8 rotate-y-180 backface-hidden">
                 <div className="flex-1">
                   <span className="text-xs font-bold uppercase tracking-widest text-slate-400">Meaning</span>

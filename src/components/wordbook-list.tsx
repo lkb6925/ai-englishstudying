@@ -1,11 +1,11 @@
+'use client';
+
+import React from 'react';
 import { useMemo, useState } from 'react';
 import { Button } from '@/src/components/ui/button';
 import { rankOrderValue } from '@/src/lib/rank';
+import { filterAndSortWords, type WordbookSort } from '@/src/lib/wordbook';
 import type { PlanTier, Rank, WordbookEntry } from '@/src/lib/types';
-import {
-  filterAndSortWords,
-  type WordbookSort,
-} from '@/src/lib/wordbook';
 
 type GroupedWords = Record<Rank, WordbookEntry[]>;
 
@@ -74,26 +74,20 @@ export function WordbookList({ words, planTier }: WordbookListProps) {
         </div>
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           <label className="space-y-2">
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
-              Search
-            </span>
+            <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Search</span>
             <input
               value={query}
               onChange={(event) => setQuery(event.target.value)}
               placeholder="word, meaning, context"
-              className="h-11 w-full rounded-xl border border-slate-200 bg-white px-4 text-sm outline-none transition focus:border-primary"
+              className="h-11 w-full rounded-xl border border-slate-200 bg-white px-4 text-sm outline-none transition focus:border-slate-400"
             />
           </label>
           <label className="space-y-2">
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
-              Rank
-            </span>
+            <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Rank</span>
             <select
               value={selectedRank}
-              onChange={(event) =>
-                setSelectedRank(event.target.value as Rank | 'all')
-              }
-              className="h-11 w-full rounded-xl border border-slate-200 bg-white px-4 text-sm outline-none transition focus:border-primary"
+              onChange={(event) => setSelectedRank(event.target.value as Rank | 'all')}
+              className="h-11 w-full rounded-xl border border-slate-200 bg-white px-4 text-sm outline-none transition focus:border-slate-400"
             >
               <option value="all">All ranks</option>
               {orderedRanks.map((rank) => (
@@ -104,13 +98,11 @@ export function WordbookList({ words, planTier }: WordbookListProps) {
             </select>
           </label>
           <label className="space-y-2">
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
-              Sort
-            </span>
+            <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Sort</span>
             <select
               value={sort}
               onChange={(event) => setSort(event.target.value as WordbookSort)}
-              className="h-11 w-full rounded-xl border border-slate-200 bg-white px-4 text-sm outline-none transition focus:border-primary"
+              className="h-11 w-full rounded-xl border border-slate-200 bg-white px-4 text-sm outline-none transition focus:border-slate-400"
             >
               <option value="recent">Recently seen</option>
               <option value="lookups">Most lookups</option>
@@ -120,7 +112,7 @@ export function WordbookList({ words, planTier }: WordbookListProps) {
           </label>
         </div>
       </div>
-      
+
       <div className={`mt-8 ${isPremium ? '' : 'pointer-events-none select-none blur-md'}`}>
         <div className="space-y-10">
           {orderedRanks.map((rank) => {
@@ -138,14 +130,17 @@ export function WordbookList({ words, planTier }: WordbookListProps) {
                 </h2>
                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                   {items.map((item) => (
-                    <div key={item.id} className="group rounded-xl border border-slate-100 bg-slate-50 p-4 transition-all hover:border-primary/20 hover:bg-white hover:shadow-md">
+                    <div
+                      key={item.id}
+                      className="group rounded-xl border border-slate-100 bg-slate-50 p-4 transition-all hover:border-slate-300 hover:bg-white hover:shadow-md"
+                    >
                       <p className="text-lg font-bold text-slate-900">{item.term}</p>
                       {item.meaning_snapshot?.length ? (
                         <p className="mt-2 text-sm font-medium text-slate-700">
                           {item.meaning_snapshot.join(' · ')}
                         </p>
                       ) : null}
-                      <p className="mt-1 text-sm text-slate-500 line-clamp-2">{item.context_sample}</p>
+                      <p className="mt-1 line-clamp-2 text-sm text-slate-500">{item.context_sample}</p>
                       <div className="mt-3 flex items-center justify-between text-xs text-slate-400">
                         <span>Lookups: {item.total_lookup_count}</span>
                         <span>{new Date(item.last_seen_at).toLocaleDateString()}</span>
@@ -160,9 +155,7 @@ export function WordbookList({ words, planTier }: WordbookListProps) {
           {filteredWords.length === 0 ? (
             <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-6 py-12 text-center">
               <p className="text-lg font-bold text-slate-900">No matching words</p>
-              <p className="mt-2 text-slate-500">
-                검색어, 랭크, 정렬 조건을 바꿔 보세요.
-              </p>
+              <p className="mt-2 text-slate-500">검색어, 랭크, 정렬 조건을 바꿔 보세요.</p>
             </div>
           ) : null}
         </div>

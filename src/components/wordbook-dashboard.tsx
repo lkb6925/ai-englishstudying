@@ -1,9 +1,12 @@
+'use client';
+
+import React from 'react';
 import { useState } from 'react';
+import { rankColorStyles } from '@/src/lib/rank';
+import { buildWordbookSummary, getReviewQueue } from '@/src/lib/wordbook';
+import type { PlanTier, WordbookEntry } from '@/src/lib/types';
 import { SwipeQuiz } from '@/src/components/swipe-quiz';
 import { WordbookList } from '@/src/components/wordbook-list';
-import type { PlanTier, WordbookEntry } from '@/src/lib/types';
-import { buildWordbookSummary, getReviewQueue } from '@/src/lib/wordbook';
-import { rankColorStyles } from '@/src/lib/rank';
 
 type WordbookDashboardProps = {
   words: WordbookEntry[];
@@ -40,13 +43,9 @@ export function WordbookDashboard({ words, planTier }: WordbookDashboardProps) {
               setIsReviewOpen((value) => !value);
             }}
             disabled={!isPremium}
-            className="rounded-xl bg-primary px-6 py-3 text-sm font-bold text-primary-foreground transition-all hover:bg-primary/90 disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-500"
+            className="rounded-xl bg-slate-900 px-6 py-3 text-sm font-bold text-white transition-all hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-500"
           >
-            {isPremium
-              ? isReviewOpen
-                ? 'Close Review'
-                : 'Start Review'
-              : 'Premium Only'}
+            {isPremium ? (isReviewOpen ? 'Close Review' : 'Start Review') : 'Premium Only'}
           </button>
         </div>
         {!isPremium ? (
@@ -58,16 +57,11 @@ export function WordbookDashboard({ words, planTier }: WordbookDashboardProps) {
         <div className="mt-6 grid gap-3 md:grid-cols-2 xl:grid-cols-5">
           {reviewQueue.length > 0 ? (
             reviewQueue.map((word) => (
-              <article
-                key={word.id}
-                className="rounded-2xl border border-slate-200 bg-slate-50 p-4"
-              >
+              <article key={word.id} className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
                 <div className="flex items-start justify-between gap-3">
                   <div>
                     <p className="font-bold text-slate-900">{word.term}</p>
-                    <p className="mt-1 text-xs text-slate-500">
-                      {word.total_lookup_count} lookups
-                    </p>
+                    <p className="mt-1 text-xs text-slate-500">{word.total_lookup_count} lookups</p>
                   </div>
                   <span
                     className={`rounded-full px-2 py-1 text-[11px] font-bold uppercase ${rankColorStyles[word.rank]}`}
@@ -75,9 +69,7 @@ export function WordbookDashboard({ words, planTier }: WordbookDashboardProps) {
                     {word.rank}
                   </span>
                 </div>
-                <p className="mt-3 line-clamp-2 text-sm text-slate-600">
-                  {word.context_sample}
-                </p>
+                <p className="mt-3 line-clamp-2 text-sm text-slate-600">{word.context_sample}</p>
               </article>
             ))
           ) : (

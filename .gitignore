@@ -13,3 +13,4 @@ env.download
 *.key
 *.p12
 *.pfx
+.omx/

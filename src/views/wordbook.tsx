@@ -1,10 +1,13 @@
+'use client';
+
+import React from 'react';
+import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { Header } from '@/src/components/header';
-import { WordbookDashboard } from '@/src/components/wordbook-dashboard';
-import { useAuth, supabase } from '@/src/lib/supabase';
-import type { WordbookEntry, PlanTier } from '@/src/lib/types';
-import { Link } from 'react-router-dom';
 import { Button } from '@/src/components/ui/button';
+import { WordbookDashboard } from '@/src/components/wordbook-dashboard';
+import type { PlanTier, WordbookEntry } from '@/src/lib/types';
+import { supabase, useAuth } from '@/src/lib/supabase';
 
 export function WordbookPage() {
   const { user, loading } = useAuth();
@@ -13,27 +16,48 @@ export function WordbookPage() {
   const [isFetching, setIsFetching] = useState(true);
 
   useEffect(() => {
-    if (!user || !supabase) {
-      setIsFetching(false);
-      return;
-    }
+    let cancelled = false;
 
-    const fetchData = async () => {
+    async function fetchData() {
+      if (!user || !supabase) {
+        if (!cancelled) {
+          setIsFetching(false);
+          setWords([]);
+          setPlanTier('free');
+        }
+        return;
+      }
+
       const [profileRes, wordsRes] = await Promise.all([
         supabase.from('profiles').select('plan_tier').eq('id', user.id).maybeSingle(),
-        supabase.from('wordbook_entries').select('*').eq('user_id', user.id).order('last_seen_at', { ascending: false })
+        supabase
+          .from('wordbook_entries')
+          .select('*')
+          .eq('user_id', user.id)
+          .order('last_seen_at', { ascending: false }),
       ]);
 
-      if (profileRes.data) {
+      if (cancelled) {
+        return;
+      }
+
+      if (profileRes.data?.plan_tier) {
         setPlanTier(profileRes.data.plan_tier as PlanTier);
       }
+
       if (wordsRes.data) {
         setWords(wordsRes.data as WordbookEntry[]);
       }
-      setIsFetching(false);
-    };
 
-    fetchData();
+      setIsFetching(false);
+    }
+
+    setIsFetching(true);
+    void fetchData();
+
+    return () => {
+      cancelled = true;
+    };
   }, [user]);
 
   if (loading || isFetching) {
@@ -53,8 +77,10 @@ export function WordbookPage() {
         <Header />
         <main className="mx-auto max-w-3xl px-4 py-20 text-center">
           <h1 className="mb-4 text-3xl font-bold">Wordbook</h1>
-          <p className="mb-8 text-slate-600">로그인하시면 당신이 조회한 단어들을 확인할 수 있습니다.</p>
-          <Link to="/auth">
+          <p className="mb-8 text-slate-600">
+            로그인하시면 당신이 조회한 단어들을 확인할 수 있습니다.
+          </p>
+          <Link href="/auth">
             <Button size="lg">Login to Start</Button>
           </Link>
         </main>
