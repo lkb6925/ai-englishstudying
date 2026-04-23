@@ -96,7 +96,7 @@ export class LookupCoordinator {
         y,
         fomoMessage: null,
       });
-      console.warn('Flow Reader lookup request failed.', error);
+      console.warn('AI English Study lookup request failed.', error);
       return;
     }
 

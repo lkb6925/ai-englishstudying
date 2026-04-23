@@ -7,7 +7,7 @@ test('public routes render the primary CTAs', async ({ page }) => {
   await expect(page.getByRole('link', { name: /내 단어장 보기/i })).toBeVisible();
 
   await page.goto('/setup');
-  await expect(page.getByRole('heading', { name: /Flow Reader 설치 가이드/i })).toBeVisible();
+  await expect(page.getByRole('heading', { name: /AI English Study 설치 가이드/i })).toBeVisible();
 
   await page.goto('/wordbook');
   await expect(page.getByRole('heading', { name: 'Wordbook' })).toBeVisible();

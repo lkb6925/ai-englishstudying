@@ -1,0 +1,15 @@
+export {
+  generateAiText,
+  generateLookupResponse,
+  getAiApiKey,
+  getAiConfig,
+  getAiModel,
+  getAiProvider,
+  isAiConfigured,
+  generateAiText as generateAnthropicText,
+  generateLookupResponse as generateAnthropicLookupResponse,
+  getAiConfig as getAnthropicConfig,
+  getAiApiKey as getAnthropicApiKey,
+  getAiModel as getAnthropicModel,
+  isAiConfigured as isAnthropicConfigured,
+} from '../../src/server/ai-client';

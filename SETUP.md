@@ -1,13 +1,13 @@
-# Flow Reader Setup
+# AI English Study Setup
 
-Flow Reader는 웹앱, Express API, Chrome 확장앱이 함께 동작하는 구조입니다.
+AI English Study는 웹앱, Express API, Chrome 확장앱이 함께 동작하는 구조입니다.
 
 ## 소스 기준
 
 - 웹앱의 정식 소스는 `src/`입니다.
 - 확장앱 엔트리는 루트의 `background.ts`, `content.tsx`, `options.tsx`, `popup.html`입니다.
 - `dist/`와 `dist-extension/`은 빌드 산출물입니다.
-- `gemini_feedback.md`는 watcher가 실행 중일 때 생성되는 산출물입니다.
+- `ai_feedback.md`는 watcher가 실행 중일 때 생성되는 산출물입니다.
 
 ## 필수 환경변수
 
@@ -20,7 +20,9 @@ VITE_APP_URL=http://localhost:3000
 VITE_API_BASE_URL=http://localhost:3000
 VITE_SUPABASE_URL=https://YOUR_PROJECT.supabase.co
 VITE_SUPABASE_ANON_KEY=YOUR_SUPABASE_ANON_KEY
-GEMINI_API_KEY=YOUR_GEMINI_API_KEY
+AI_API_KEY=YOUR_API_KEY
+AI_PROVIDER=mock # local offline testing; change to gemini or anthropic for live calls
+AI_MODEL=mock
 ```
 
 - `APP_URL`: 웹앱의 public origin
@@ -54,7 +56,7 @@ npm run build-extension
 npm run package-extension
 ```
 
-- 루트에 `flow-reader-extension.zip`이 생성됩니다.
+- 루트에 `ai-english-study-extension.zip`이 생성됩니다.
 - 이 zip을 로컬 컴퓨터로 다운로드한 뒤 압축을 풉니다.
 - Chrome의 `chrome://extensions`에서 개발자 모드를 켠 뒤, 압축 해제된 폴더를 선택합니다.
 
@@ -69,15 +71,16 @@ npm run package-extension
 
 기존 프로젝트를 업그레이드하는 경우에도 `ALTER TABLE ... ADD COLUMN IF NOT EXISTS`가 포함되어 있어 `meaning_snapshot` 필드가 추가됩니다.
 
-## Gemini Watcher
+## AI Watcher
 
 ```bash
-node gemini-watcher.js
+npm run watch:ai
 ```
 
-- 실행 시 `gemini_feedback.md`가 없으면 자동으로 초기 파일을 만듭니다.
-- 코드 파일을 저장하면 watcher가 Gemini 리뷰를 요청하고 결과를 `gemini_feedback.md`에 기록합니다.
-- `GEMINI_API_KEY`가 없으면 리뷰 대신 복구 방법이 적힌 안내를 파일에 남깁니다.
+- 실행 시 `ai_feedback.md`가 없으면 자동으로 초기 파일을 만듭니다.
+- 코드 파일을 저장하면 watcher가 AI 리뷰를 요청하고 결과를 `ai_feedback.md`에 기록합니다.
+- `AI_API_KEY`가 없으면 리뷰 대신 복구 방법이 적힌 안내를 파일에 남깁니다.
+- `AI_PROVIDER=mock`이면 외부 API 없이 로컬에서 바로 테스트할 수 있습니다.
 
 ## 출시 전 체크리스트
 

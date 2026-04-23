@@ -35,9 +35,44 @@ describe('route handlers', () => {
     expect(response.status).toBe(400);
   });
 
+  it('returns a mock lookup response when AI_PROVIDER is mock', async () => {
+    const originalProvider = process.env.AI_PROVIDER;
+    const originalKey = process.env.AI_API_KEY;
+
+    process.env.AI_PROVIDER = 'mock';
+    delete process.env.AI_API_KEY;
+
+    const response = await lookupPost(
+      new Request('http://localhost/api/lookup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ word: 'focus', sentence: 'Stay focused.' }),
+      }),
+    );
+
+    expect(response.status).toBe(200);
+    const json = await response.json();
+    expect(json.lemma).toBe('focus');
+    expect(Array.isArray(json.contextual_meanings)).toBe(true);
+    expect(json.contextual_meanings.length).toBeGreaterThan(0);
+
+    if (originalProvider) {
+      process.env.AI_PROVIDER = originalProvider;
+    } else {
+      delete process.env.AI_PROVIDER;
+    }
+
+    if (originalKey) {
+      process.env.AI_API_KEY = originalKey;
+    }
+  });
+
   it('returns 503 when AI is not configured', async () => {
-    const originalKey = process.env.GEMINI_API_KEY;
-    delete process.env.GEMINI_API_KEY;
+    const originalProvider = process.env.AI_PROVIDER;
+    const originalKey = process.env.AI_API_KEY;
+
+    process.env.AI_PROVIDER = 'gemini';
+    delete process.env.AI_API_KEY;
 
     const response = await lookupPost(
       new Request('http://localhost/api/lookup', {
@@ -49,8 +84,14 @@ describe('route handlers', () => {
 
     expect(response.status).toBe(503);
 
+    if (originalProvider) {
+      process.env.AI_PROVIDER = originalProvider;
+    } else {
+      delete process.env.AI_PROVIDER;
+    }
+
     if (originalKey) {
-      process.env.GEMINI_API_KEY = originalKey;
+      process.env.AI_API_KEY = originalKey;
     }
   });
 

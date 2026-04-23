@@ -18,7 +18,7 @@ const CONFIG = {
   pollMs: Number(process.env.AUTO_PUBLISH_POLL_MS ?? '3000'),
   idleMs: Number(process.env.AUTO_PUBLISH_IDLE_MS ?? '15000'),
   remoteName: process.env.AUTO_PUBLISH_REMOTE ?? 'origin',
-  ignoredPaths: ['dist/', 'dist-extension/', 'gemini_feedback.md'],
+  ignoredPaths: ['dist/', 'dist-extension/', 'ai_feedback.md'],
 } as const;
 
 function parseArgs(argv: string[]): CliOptions {

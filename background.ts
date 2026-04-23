@@ -243,7 +243,7 @@ async function handleLookup(
     if (isLookupEventApiResponse(eventPayload)) {
       lookupEvent = eventPayload;
     } else {
-      console.warn('Flow Reader lookup-event response shape was invalid.', eventPayload);
+      console.warn('AI English Study lookup-event response shape was invalid.', eventPayload);
     }
 
     if (

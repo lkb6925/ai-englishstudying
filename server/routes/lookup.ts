@@ -1,10 +1,7 @@
 import express from 'express';
-import { Type } from '@google/genai';
+import { generateLookupResponse, isAiConfigured } from '../lib/ai-client';
 import { shouldExcludeDomain } from '../../text';
-import {
-  getRankFromCount,
-  rankOrderValue,
-} from '../../src/lib/rank.ts';
+import { getRankFromCount, rankOrderValue } from '../../src/lib/rank.ts';
 import type { Rank } from '../../src/lib/types.ts';
 import type { AppContext, UserScopedSupabase } from '../lib/context.ts';
 import {
@@ -40,38 +37,10 @@ function parseLookupResponse(
 }
 
 async function lookupContextualMeanings(
-  appContext: AppContext,
   word: string,
   sentence: string,
 ): Promise<LookupResponse> {
-  if (!appContext.ai) {
-    throw new Error('AI lookup is not configured on the server');
-  }
-
-  const response = await appContext.ai.models.generateContent({
-    model: 'gemini-2.0-flash',
-    contents: `Analyze the word "${word}" in the context of this sentence: "${sentence}". Provide 1-2 concise contextual meanings in Korean.`,
-    config: {
-      responseMimeType: 'application/json',
-      responseSchema: {
-        type: Type.OBJECT,
-        properties: {
-          lemma: {
-            type: Type.STRING,
-            description: 'The dictionary form of the word',
-          },
-          contextual_meanings: {
-            type: Type.ARRAY,
-            items: { type: Type.STRING },
-            description: '1-2 concise contextual meanings in Korean',
-          },
-        },
-        required: ['lemma', 'contextual_meanings'],
-      },
-    },
-  });
-
-  return parseLookupResponse(JSON.parse(response.text || '{}'), word);
+  return generateLookupResponse(word, sentence);
 }
 
 async function getPlanTier(
@@ -114,24 +83,19 @@ export function createLookupRouter(appContext: AppContext): express.Router {
       });
     }
 
+    if (!isAiConfigured()) {
+      return res.status(503).json({ error: 'AI lookup is not configured on the server' });
+    }
+
     try {
-      const result = await lookupContextualMeanings(appContext, word, sentence);
+      const result = await lookupContextualMeanings(word, sentence);
       return res.json(result);
     } catch (error) {
       console.error('Lookup error:', error);
       const errMsg = String(error);
 
-      if (
-        errMsg.includes('RESOURCE_EXHAUSTED') ||
-        errMsg.toLowerCase().includes('quota')
-      ) {
-        return res
-          .status(503)
-          .json({ error: 'AI lookup quota is currently exhausted' });
-      }
-
-      if (errMsg.includes('not configured')) {
-        return res.status(503).json({ error: errMsg });
+      if (errMsg.includes('HTTP 429') || errMsg.includes('HTTP 529') || errMsg.toLowerCase().includes('quota')) {
+        return res.status(503).json({ error: 'AI lookup is currently unavailable' });
       }
 
       return res.status(500).json({ error: 'AI lookup failed', details: errMsg });
@@ -246,10 +210,7 @@ export function createLookupRouter(appContext: AppContext): express.Router {
             rank: nextRank,
             last_seen_at: now,
             context_sample: safeContext,
-            meaning_snapshot:
-              safeMeanings.length > 0
-                ? safeMeanings
-                : existingEntry.meaning_snapshot,
+            meaning_snapshot: safeMeanings.length > 0 ? safeMeanings : existingEntry.meaning_snapshot,
           })
           .eq('id', existingEntry.id);
 
@@ -259,18 +220,16 @@ export function createLookupRouter(appContext: AppContext): express.Router {
       } else if (totalLookupCount >= 2) {
         promoted = true;
 
-        const { error: insertEntryError } = await userDb
-          .from('wordbook_entries')
-          .insert({
-            user_id: user.id,
-            term,
-            normalized_term: normalizedTerm,
-            context_sample: safeContext,
-            meaning_snapshot: safeMeanings.length > 0 ? safeMeanings : null,
-            total_lookup_count: totalLookupCount,
-            rank: nextRank,
-            last_seen_at: now,
-          });
+        const { error: insertEntryError } = await userDb.from('wordbook_entries').insert({
+          user_id: user.id,
+          term,
+          normalized_term: normalizedTerm,
+          context_sample: safeContext,
+          meaning_snapshot: safeMeanings.length > 0 ? safeMeanings : null,
+          total_lookup_count: totalLookupCount,
+          rank: nextRank,
+          last_seen_at: now,
+        });
 
         if (insertEntryError) {
           throw insertEntryError;

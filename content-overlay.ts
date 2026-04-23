@@ -131,7 +131,7 @@ export class OverlayRenderer {
     popup.innerHTML = `
       <p class="word">
         ${state.word}
-        <span class="badge">Flow Reader</span>
+        <span class="badge">AI English Study</span>
       </p>
       <div class="divider"></div>
       ${
@@ -157,7 +157,7 @@ export class OverlayRenderer {
     }
 
     const host = document.createElement('div');
-    host.id = 'flow-reader-overlay-host';
+    host.id = 'ai-english-study-overlay-host';
     Object.assign(host.style, {
       position: 'fixed',
       left: '0',

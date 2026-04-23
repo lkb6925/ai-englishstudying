@@ -63,7 +63,7 @@ function Options() {
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               fontSize: '16px'
             }}>📖</div>
-            <h1 style={{ margin: 0, fontSize: '20px', fontWeight: 900 }}>Flow Reader 설정</h1>
+            <h1 style={{ margin: 0, fontSize: '20px', fontWeight: 900 }}>AI English Study 설정</h1>
           </div>
           <p style={{ margin: 0, color: '#71717a', fontSize: '14px' }}>
             단축키 및 서버 주소를 설정하세요.
@@ -146,7 +146,7 @@ function Options() {
         }}>
           <h2 style={{ margin: '0 0 6px 0', fontSize: '16px', fontWeight: 700 }}>🌐 서버 주소</h2>
           <p style={{ margin: '0 0 16px 0', color: '#71717a', fontSize: '13px' }}>
-            Flow Reader 서버의 주소를 입력하세요.
+            AI English Study 서버의 주소를 입력하세요.
           </p>
           <input
             type="url"

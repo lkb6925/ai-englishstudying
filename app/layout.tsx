@@ -3,7 +3,7 @@ import type { ReactNode } from 'react';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'Flow Reader',
+  title: 'AI English Study',
   description: 'AI 기반 영어 단어 조회 및 자동 단어장',
 };
 

@@ -51,7 +51,7 @@ class FlowReaderContentScript {
         return response.data.modifier;
       }
     } catch (error) {
-      console.warn('Flow Reader modifier load failed, using default.', error);
+      console.warn('AI English Study modifier load failed, using default.', error);
     }
 
     return 'alt_option';

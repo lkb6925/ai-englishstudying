@@ -71,7 +71,7 @@ async function main() {
     setApiBaseUrlText(runtimeConfig.apiBaseUrl || fallbackApiBaseUrl);
     bindWordbookButton(runtimeConfig.appUrl || fallbackAppUrl);
   } catch (error) {
-    console.warn('Flow Reader popup failed to load runtime config.', error);
+    console.warn('AI English Study popup failed to load runtime config.', error);
     setModifierUI('alt_option');
     setApiBaseUrlText(fallbackApiBaseUrl);
     bindWordbookButton(fallbackWordbookUrl.replace(/\/wordbook$/, ''));

@@ -20,7 +20,7 @@ export function SetupPage() {
             Install Guide
           </span>
           <h1 className="mt-4 text-4xl font-black tracking-tight text-indigo-700">
-            Flow Reader 설치 가이드
+            AI English Study 설치 가이드
           </h1>
           <p className="mt-4 max-w-2xl text-base leading-7 text-slate-600">
             첫 출시 버전은 Chrome 개발자 모드 설치를 기준으로 제공합니다. 아래 순서대로

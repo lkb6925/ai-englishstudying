@@ -1,15 +1,19 @@
 import 'dotenv/config';
 import fs from 'fs';
 import path from 'path';
-import { fileURLToPath } from 'url';
+import { generateAiText, getAiConfig, isAiConfigured } from './server/lib/ai-client';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const AI_CONFIG = getAiConfig();
 
 const CONFIG = {
-  API_KEY: process.env.GEMINI_API_KEY || '',
+  API_KEY:
+    AI_CONFIG?.apiKey ||
+    process.env.AI_API_KEY ||
+    process.env.GEMINI_API_KEY ||
+    process.env.ANTHROPIC_API_KEY ||
+    '',
   WATCH_DIR: process.cwd(),
-  FEEDBACK_FILE: 'gemini_feedback.md',
+  FEEDBACK_FILE: 'ai_feedback.md',
   WATCH_EXTS: ['.js', '.jsx', '.ts', '.tsx', '.py', '.html', '.css', '.vue', '.svelte'],
   EXCLUDE_PATTERNS: [
     'node_modules',
@@ -23,7 +27,7 @@ const CONFIG = {
     '__pycache__',
     'venv',
     '.env',
-    'gemini_feedback.md',
+    'ai_feedback.md',
     'gemini-watcher.js',
     'package-lock.json',
     'yarn.lock',
@@ -34,7 +38,16 @@ const CONFIG = {
   MAX_CHARS: 12000,
   RETRY_COUNT: 2,
   RETRY_DELAY_MS: 2000,
-  MODEL: process.env.GEMINI_MODEL || 'gemini-2.0-flash',
+  MODEL:
+    AI_CONFIG?.model ||
+    process.env.AI_MODEL ||
+    process.env.GEMINI_MODEL ||
+    process.env.ANTHROPIC_MODEL ||
+    'gemini-2.0-flash',
+  PROVIDER:
+    AI_CONFIG?.provider ||
+    process.env.AI_PROVIDER ||
+    (process.env.ANTHROPIC_API_KEY ? 'anthropic' : 'gemini'),
 };
 
 const C = {
@@ -75,9 +88,7 @@ function shouldSkip(filePath) {
   const last = cooldownMap.get(filePath) || 0;
   if (now - last < CONFIG.COOLDOWN_MS) {
     log.dim(
-      `[cooldown] ${filePath} - ${Math.ceil(
-        (CONFIG.COOLDOWN_MS - (now - last)) / 1000,
-      )}s left`,
+      `[cooldown] ${filePath} - ${Math.ceil((CONFIG.COOLDOWN_MS - (now - last)) / 1000)}s left`,
     );
     return true;
   }
@@ -113,7 +124,7 @@ ${code}
 
 Return markdown in this exact structure:
 
-# ${filename} - Gemini Code Review
+# ${filename} - AI Code Review
 
 > Review time: {{TIMESTAMP}}
 > Target file: \`${filename}\`
@@ -142,7 +153,7 @@ One short sentence telling Codex what to fix first.
 
 function buildMissingKeyFeedback(filename) {
   const timestamp = new Date().toISOString();
-  return `# Gemini Watcher Status
+  return `# AI Watcher Status
 
 > Review time: ${timestamp}
 > Target file: \`${filename}\`
@@ -151,7 +162,9 @@ function buildMissingKeyFeedback(filename) {
 
 ## Critical
 
-- \`GEMINI_API_KEY\` is missing, so Gemini review could not run.
+- \`AI_API_KEY\` is missing, so AI review could not run.
+- You can also use \`GEMINI_API_KEY\` or \`ANTHROPIC_API_KEY\`.
+- \`AI_PROVIDER=mock\` runs the deterministic offline fallback.
 
 ## Architecture
 
@@ -163,17 +176,18 @@ function buildMissingKeyFeedback(filename) {
 
 ## Readability
 
-- Add \`GEMINI_API_KEY\` to \`.env\` or \`.env.local\` and restart the watcher.
+- Add \`AI_API_KEY\` to \`.env\` or \`.env.local\` and restart the watcher.
+- Or set \`AI_PROVIDER\` if you want to pin a specific supported provider.
 
 ## Recommended Patch
 
 \`\`\`md
-Set GEMINI_API_KEY in your environment and save the file again.
+Set AI_API_KEY in your environment and save the file again.
 \`\`\`
 
 ## Next Step
 
-Add \`GEMINI_API_KEY\`, restart \`node gemini-watcher.js\`, then resave \`${filename}\`.
+Add a supported API key, restart \`npm run watch:ai\`, then resave \`${filename}\`.
 `;
 }
 
@@ -183,7 +197,7 @@ function ensureFeedbackFile() {
     return;
   }
 
-  const initialMessage = `# Gemini Watcher Ready
+  const initialMessage = `# AI Watcher Ready
 
 > Started at: ${new Date().toISOString()}
 
@@ -192,34 +206,13 @@ Waiting for file changes...
   fs.writeFileSync(feedbackPath, initialMessage, 'utf8');
 }
 
-async function callGeminiAPI(prompt) {
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/${CONFIG.MODEL}:generateContent?key=${CONFIG.API_KEY}`;
-
-  const response = await fetch(url, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      contents: [{ parts: [{ text: prompt }] }],
-      generationConfig: {
-        temperature: 0.2,
-        maxOutputTokens: 4096,
-      },
-    }),
+async function callAiAPI(prompt) {
+  return generateAiText(prompt, {
+    system:
+      'You are reviewing a production-bound codebase. Be direct, concrete, and prioritize issues that would block release.',
+    maxTokens: 4096,
+    temperature: 0.2,
   });
-
-  if (!response.ok) {
-    const errBody = await response.text();
-    throw new Error(`HTTP ${response.status} - ${errBody}`);
-  }
-
-  const data = await response.json();
-  const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-
-  if (!text) {
-    throw new Error('Gemini returned no review text');
-  }
-
-  return text;
 }
 
 function getReadableErrorMessage(error) {
@@ -230,7 +223,7 @@ function getReadableErrorMessage(error) {
     message.includes('HTTP 429') ||
     message.toLowerCase().includes('quota')
   ) {
-    return 'Gemini API quota is exhausted right now. Wait for quota reset or switch to a billed key, then save the file again.';
+    return 'AI API quota is exhausted right now. Wait for quota reset or switch to another supported key, then save the file again.';
   }
 
   return message;
@@ -239,23 +232,19 @@ function getReadableErrorMessage(error) {
 async function callWithRetry(prompt) {
   for (let attempt = 1; attempt <= CONFIG.RETRY_COUNT + 1; attempt += 1) {
     try {
-      return await callGeminiAPI(prompt);
+      return await callAiAPI(prompt);
     } catch (error) {
       if (attempt > CONFIG.RETRY_COUNT) {
         throw error;
       }
 
-      log.warn(
-        `Gemini call failed (${attempt}/${CONFIG.RETRY_COUNT + 1}); retrying in ${
-          CONFIG.RETRY_DELAY_MS / 1000
-        }s`,
-      );
+      log.warn(`AI call failed (${attempt}/${CONFIG.RETRY_COUNT + 1}); retrying in ${CONFIG.RETRY_DELAY_MS / 1000}s`);
       log.dim(`  reason: ${getReadableErrorMessage(error)}`);
       await new Promise((resolve) => setTimeout(resolve, CONFIG.RETRY_DELAY_MS));
     }
   }
 
-  throw new Error('Gemini retry loop exited unexpectedly');
+  throw new Error('AI retry loop exited unexpectedly');
 }
 
 function writeFeedback(markdown) {
@@ -281,9 +270,7 @@ function printSummary(filename, feedbackText) {
   }
 
   console.log('');
-  log.action(
-    `Codex prompt: "${CONFIG.FEEDBACK_FILE} 읽고 ${filename} 출시 기준으로 수정해"`,
-  );
+  log.action(`Codex prompt: "${CONFIG.FEEDBACK_FILE} 읽고 ${filename} 출시 기준으로 수정해"`);
   console.log('');
 }
 
@@ -293,7 +280,7 @@ async function processFeedback(filePath, filename) {
   }
 
   cooldownMap.set(filePath, Date.now());
-  log.section(`Gemini review start: ${filename}`);
+  log.section(`AI review start: ${filename}`);
 
   let code;
   try {
@@ -318,7 +305,7 @@ async function processFeedback(filePath, filename) {
   const timestamp = new Date().toISOString();
   const prompt = buildPrompt(filename, code, trimmed).replace('{{TIMESTAMP}}', timestamp);
 
-  if (!CONFIG.API_KEY) {
+  if (!isAiConfigured()) {
     const fallback = buildMissingKeyFeedback(filename);
     writeFeedback(fallback);
     printSummary(filename, fallback);
@@ -326,21 +313,21 @@ async function processFeedback(filePath, filename) {
   }
 
   try {
-    log.info(`sending ${filename} to ${CONFIG.MODEL}`);
+    log.info(`sending ${filename} to ${CONFIG.PROVIDER} / ${CONFIG.MODEL}`);
     const feedback = await callWithRetry(prompt);
     writeFeedback(feedback);
     printSummary(filename, feedback);
   } catch (error) {
     const message = getReadableErrorMessage(error);
-    log.error(`Gemini review failed: ${message}`);
-    const fallback = `# Gemini Watcher Error
+    log.error(`AI review failed: ${message}`);
+    const fallback = `# AI Watcher Error
 
 > Review time: ${new Date().toISOString()}
 > Target file: \`${filename}\`
 
 ---
 
-Gemini review failed.
+AI review failed.
 
 \`\`\`
 ${message}
@@ -355,16 +342,18 @@ Save the file again after fixing the watcher or API configuration.
 function startWatcher() {
   ensureFeedbackFile();
 
-  log.section('Gemini Watcher Online');
+  log.section('AI Watcher Online');
   log.info(`watching: ${CONFIG.WATCH_DIR}`);
   log.info(`extensions: ${CONFIG.WATCH_EXTS.join(', ')}`);
   log.info(`debounce: ${CONFIG.DEBOUNCE_MS}ms | cooldown: ${CONFIG.COOLDOWN_MS}ms`);
   log.info(`feedback file: ${CONFIG.FEEDBACK_FILE}`);
 
-  if (!CONFIG.API_KEY) {
-    log.warn('GEMINI_API_KEY is missing; watcher will write recovery guidance instead of live reviews');
+  if (!isAiConfigured()) {
+    log.warn('AI_API_KEY / GEMINI_API_KEY / ANTHROPIC_API_KEY is missing; watcher will write recovery guidance instead of live reviews');
+  } else if (CONFIG.PROVIDER === 'mock') {
+    log.ok('AI mock provider ready');
   } else {
-    log.ok(`Gemini model ready: ${CONFIG.MODEL}`);
+    log.ok(`AI model ready: ${CONFIG.PROVIDER} / ${CONFIG.MODEL}`);
   }
 
   fs.watch(CONFIG.WATCH_DIR, { recursive: true }, (_eventType, filename) => {

@@ -26,7 +26,7 @@ export function Header() {
           <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-900 font-bold text-white">
             F
           </div>
-          <span className="text-xl font-bold tracking-tight">Flow Reader</span>
+          <span className="text-xl font-bold tracking-tight">AI English Study</span>
         </Link>
 
         <nav className="flex items-center gap-4">

@@ -19,7 +19,7 @@ function copyExtensionAssets({ appUrl, apiBaseUrl }: ExtensionPluginOptions) {
     closeBundle: async () => {
       const manifest = {
         manifest_version: 3,
-        name: 'Flow Reader',
+        name: 'AI English Study',
         version: '0.1.0',
         description:
           'AI 기반 영어 단어 조회 및 자동 단어장 - Alt/Option + 마우스 올리기',
@@ -42,7 +42,7 @@ function copyExtensionAssets({ appUrl, apiBaseUrl }: ExtensionPluginOptions) {
         },
         action: {
           default_popup: 'popup.html',
-          default_title: 'Flow Reader',
+          default_title: 'AI English Study',
         },
         web_accessible_resources: [
           {
@@ -62,7 +62,7 @@ function copyExtensionAssets({ appUrl, apiBaseUrl }: ExtensionPluginOptions) {
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Flow Reader</title>
+  <title>AI English Study</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
@@ -181,7 +181,7 @@ function copyExtensionAssets({ appUrl, apiBaseUrl }: ExtensionPluginOptions) {
   <div class="header">
     <div class="logo">📖</div>
     <div>
-      <div class="logo-text">Flow Reader</div>
+      <div class="logo-text">AI English Study</div>
       <div class="logo-sub">AI 영어 단어 조회</div>
     </div>
   </div>
@@ -221,7 +221,7 @@ function copyExtensionAssets({ appUrl, apiBaseUrl }: ExtensionPluginOptions) {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Flow Reader Options</title>
+  <title>AI English Study Options</title>
 </head>
 <body>
   <div id="root"></div>

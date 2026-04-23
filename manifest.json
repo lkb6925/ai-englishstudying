@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "Flow Reader",
+  "name": "AI English Study",
   "version": "0.1.0",
   "description": "AI 기반 영어 단어 조회 및 자동 단어장 - Alt/Option + 마우스 올리기",
   "permissions": ["storage", "activeTab"],
@@ -25,7 +25,7 @@
   },
   "action": {
     "default_popup": "popup.html",
-    "default_title": "Flow Reader"
+    "default_title": "AI English Study"
   },
   "web_accessible_resources": [
     {
