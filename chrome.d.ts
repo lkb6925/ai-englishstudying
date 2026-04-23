@@ -17,6 +17,14 @@ declare namespace chrome {
     export function create(createProperties: { url: string }): Promise<void>;
   }
   export namespace storage {
+    export const onChanged: {
+      addListener: (
+        callback: (
+          changes: Record<string, { oldValue?: unknown; newValue?: unknown }>,
+          areaName: 'sync' | 'local' | 'session',
+        ) => void,
+      ) => void;
+    };
     export const sync: {
       get: (keys: string | string[] | null) => Promise<any>;
       set: (items: any) => Promise<void>;

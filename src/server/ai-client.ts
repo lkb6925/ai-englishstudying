@@ -72,23 +72,35 @@ function detectProvider(): AiProvider | null {
 }
 
 function resolveApiKey(provider: AiProvider): string {
-  return (
-    process.env.AI_API_KEY ??
-    (provider === 'gemini'
-      ? process.env.GEMINI_API_KEY ?? ''
-      : provider === 'anthropic'
-        ? process.env.ANTHROPIC_API_KEY ?? ''
-        : 'mock')
-  );
+  if (provider === 'gemini') {
+    return process.env.GEMINI_API_KEY?.trim() || process.env.AI_API_KEY?.trim() || '';
+  }
+
+  if (provider === 'anthropic') {
+    return process.env.ANTHROPIC_API_KEY?.trim() || process.env.AI_API_KEY?.trim() || '';
+  }
+
+  return '';
 }
 
 function resolveModel(provider: AiProvider): string {
-  return (
-    process.env.AI_MODEL ??
-    (provider === 'gemini'
-      ? process.env.GEMINI_MODEL ?? DEFAULT_MODELS.gemini
-      : process.env.ANTHROPIC_MODEL ?? DEFAULT_MODELS.anthropic)
-  );
+  if (provider === 'gemini') {
+    return (
+      process.env.GEMINI_MODEL?.trim() ||
+      process.env.AI_MODEL?.trim() ||
+      DEFAULT_MODELS.gemini
+    );
+  }
+
+  if (provider === 'anthropic') {
+    return (
+      process.env.ANTHROPIC_MODEL?.trim() ||
+      process.env.AI_MODEL?.trim() ||
+      DEFAULT_MODELS.anthropic
+    );
+  }
+
+  return DEFAULT_MODELS.mock;
 }
 
 export function getAiProvider(): AiProvider | null {
@@ -139,7 +151,7 @@ function extractTextFromGemini(response: unknown): string {
 }
 
 function buildMockText(prompt: string): string {
-  const lookupMatch = prompt.match(/Analyze the word "([^"]+)".*?sentence: "([^"]+)"/s);
+  const lookupMatch = prompt.match(/word\s+"([^"]+)"[\s\S]*?sentence:\s*"([^"]+)"/i);
 
   if (lookupMatch) {
     const word = lookupMatch[1].trim();

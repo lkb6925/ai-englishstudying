@@ -25,6 +25,15 @@ const defaultApiBaseUrl = resolveApiBaseUrl(
   import.meta.env.VITE_CODESPACES_PORT_FORWARDING_DOMAIN,
 );
 
+function broadcastModifierChange(modifier: ModifierMode) {
+  void chrome.runtime.sendMessage({
+    type: 'FLOW_MODIFIER_CHANGED',
+    payload: { modifier },
+  }).catch(() => {
+    // best effort broadcast only
+  });
+}
+
 type LookupApiResponse = {
   contextual_meanings: string[];
 };
@@ -279,6 +288,22 @@ async function clearAuthToken(): Promise<void> {
   await removeStorageValue(chrome.storage.local, extensionStorageKeys.jwt);
 }
 
+chrome.storage.onChanged.addListener((changes, areaName) => {
+  if (areaName !== 'sync') {
+    return;
+  }
+
+  const modifierChange = changes[extensionStorageKeys.modifier];
+  if (!modifierChange) {
+    return;
+  }
+
+  const nextModifier = modifierChange.newValue;
+  if (nextModifier === 'alt_option' || nextModifier === 'cmd_ctrl') {
+    broadcastModifierChange(nextModifier);
+  }
+});
+
 chrome.runtime.onMessage.addListener(
   (message: any, _sender: any, sendResponse: (response: any) => void) => {
     const handler = async (
@@ -298,7 +323,7 @@ chrome.runtime.onMessage.addListener(
           ok: true,
           data: {
             modifier,
-            appUrl: apiBaseUrl || defaultAppUrl,
+            appUrl: defaultAppUrl,
             apiBaseUrl: apiBaseUrl || defaultApiBaseUrl,
           },
         };

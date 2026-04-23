@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
+import { Check, Globe2, Keyboard, Sparkles } from 'lucide-react';
 import type { ModifierMode } from './messages';
 import { resolveApiBaseUrl } from './app-config';
 
@@ -15,6 +16,21 @@ type OptionsState = {
   saved: boolean;
 };
 
+const modifierOptions = [
+  {
+    value: 'alt_option' as ModifierMode,
+    label: 'Alt / Option',
+    description: 'Windows: Alt | Mac: Option',
+    keyHint: '⌥',
+  },
+  {
+    value: 'cmd_ctrl' as ModifierMode,
+    label: 'Cmd / Ctrl',
+    description: 'Windows: Ctrl | Mac: Cmd',
+    keyHint: '⌘',
+  },
+] as const;
+
 function Options() {
   const [state, setState] = useState<OptionsState>({
     modifier: 'alt_option',
@@ -22,10 +38,14 @@ function Options() {
     saved: false,
   });
 
+  const selectedOption = useMemo(
+    () => modifierOptions.find((option) => option.value === state.modifier),
+    [state.modifier],
+  );
+
   useEffect(() => {
-    // Load saved settings
     chrome.storage.sync.get(['flow_reader_modifier', 'flow_reader_api_base_url']).then((values) => {
-      setState(prev => ({
+      setState((prev) => ({
         ...prev,
         modifier: (values.flow_reader_modifier as ModifierMode) || 'alt_option',
         apiBaseUrl: values.flow_reader_api_base_url || defaultApiBaseUrl,
@@ -33,166 +53,138 @@ function Options() {
     });
   }, []);
 
+  useEffect(() => {
+    if (!state.saved) {
+      return;
+    }
+
+    const timeout = window.setTimeout(() => {
+      setState((prev) => ({ ...prev, saved: false }));
+    }, 1800);
+
+    return () => window.clearTimeout(timeout);
+  }, [state.saved]);
+
   const saveSettings = async () => {
     await chrome.storage.sync.set({
       flow_reader_modifier: state.modifier,
-      flow_reader_api_base_url: state.apiBaseUrl,
+      flow_reader_api_base_url: state.apiBaseUrl.trim(),
     });
-    setState(prev => ({ ...prev, saved: true }));
-    setTimeout(() => setState(prev => ({ ...prev, saved: false })), 2000);
+    setState((prev) => ({ ...prev, saved: true }));
   };
 
   return (
-    <div style={{
-      fontFamily: "'Pretendard Variable', 'Pretendard', system-ui, sans-serif",
-      background: '#0a0a0f',
-      minHeight: '100vh',
-      color: '#f4f4f5',
-      padding: '40px 20px',
-    }}>
-      <div style={{ maxWidth: '480px', margin: '0 auto' }}>
-        {/* Header */}
-        <div style={{ marginBottom: '32px' }}>
-          <div style={{
-            display: 'inline-flex', alignItems: 'center', gap: '10px',
-            marginBottom: '8px'
-          }}>
-            <div style={{
-              width: '32px', height: '32px', borderRadius: '10px',
-              background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontSize: '16px'
-            }}>📖</div>
-            <h1 style={{ margin: 0, fontSize: '20px', fontWeight: 900 }}>AI English Study 설정</h1>
+    <div className="min-h-screen bg-transparent px-4 py-10 text-slate-900">
+      <div className="mx-auto max-w-3xl">
+        <header className="mb-6 rounded-[2rem] border border-white/70 bg-white/85 p-6 shadow-[0_18px_60px_rgba(15,23,42,0.08)] backdrop-blur">
+          <div className="flex items-center gap-3">
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-950 text-white shadow-lg shadow-slate-950/15">
+              <Sparkles className="h-5 w-5" />
+            </div>
+            <div>
+              <p className="text-xs font-bold uppercase tracking-[0.28em] text-indigo-600">AI English Study</p>
+              <h1 className="text-2xl font-black tracking-tight">설정</h1>
+            </div>
           </div>
-          <p style={{ margin: 0, color: '#71717a', fontSize: '14px' }}>
-            단축키 및 서버 주소를 설정하세요.
+          <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-600">
+            단축키와 서버 주소를 저장하면 확장앱이 바로 동작합니다. 저장 후 열려 있는 탭에도 설정이 자동 반영됩니다.
           </p>
-        </div>
+        </header>
 
-        {/* Modifier Key */}
-        <div style={{
-          background: 'rgba(255,255,255,0.04)',
-          border: '1px solid rgba(255,255,255,0.08)',
-          borderRadius: '16px',
-          padding: '24px',
-          marginBottom: '16px',
-        }}>
-          <h2 style={{ margin: '0 0 6px 0', fontSize: '16px', fontWeight: 700 }}>🎯 단어 조회 단축키</h2>
-          <p style={{ margin: '0 0 20px 0', color: '#71717a', fontSize: '13px' }}>
-            이 키를 누른 상태에서 단어 위에 마우스를 올리면 뜻이 표시됩니다.
-          </p>
-
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-            {([
-              {
-                value: 'alt_option' as ModifierMode,
-                label: 'Alt / Option 키',
-                desc: 'Windows: Alt | Mac: Option',
-                icon: '⌥',
-              },
-              {
-                value: 'cmd_ctrl' as ModifierMode,
-                label: 'Cmd / Ctrl 키',
-                desc: 'Windows: Ctrl | Mac: Cmd',
-                icon: '⌘',
-              },
-            ] as const).map((opt) => (
-              <label
-                key={opt.value}
-                style={{
-                  display: 'flex', alignItems: 'center', gap: '14px',
-                  padding: '14px 16px', borderRadius: '12px', cursor: 'pointer',
-                  background: state.modifier === opt.value ? 'rgba(99,102,241,0.15)' : 'rgba(255,255,255,0.03)',
-                  border: `1px solid ${state.modifier === opt.value ? 'rgba(99,102,241,0.5)' : 'rgba(255,255,255,0.06)'}`,
-                  transition: 'all 0.15s ease',
-                }}
-              >
-                <input
-                  type="radio"
-                  name="modifier"
-                  value={opt.value}
-                  checked={state.modifier === opt.value}
-                  onChange={() => setState(prev => ({ ...prev, modifier: opt.value }))}
-                  style={{ display: 'none' }}
-                />
-                <div style={{
-                  width: '40px', height: '40px', borderRadius: '10px', flexShrink: 0,
-                  background: state.modifier === opt.value ? 'rgba(99,102,241,0.25)' : 'rgba(255,255,255,0.06)',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: '20px',
-                }}>
-                  {opt.icon}
-                </div>
-                <div>
-                  <div style={{ fontWeight: 700, fontSize: '14px' }}>{opt.label}</div>
-                  <div style={{ color: '#71717a', fontSize: '12px', marginTop: '2px' }}>{opt.desc}</div>
-                </div>
-                {state.modifier === opt.value && (
-                  <div style={{ marginLeft: 'auto', color: '#818cf8', fontSize: '18px' }}>✓</div>
-                )}
-              </label>
-            ))}
+        <section className="space-y-4 rounded-[2rem] border border-white/70 bg-white/85 p-6 shadow-[0_18px_60px_rgba(15,23,42,0.08)] backdrop-blur">
+          <div className="flex items-start gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-indigo-50 text-indigo-700 ring-1 ring-indigo-100">
+              <Keyboard className="h-5 w-5" />
+            </div>
+            <div>
+              <h2 className="text-lg font-bold text-slate-950">단어 조회 단축키</h2>
+              <p className="text-sm text-slate-600">이 키를 누른 상태에서 단어 위에 마우스를 올리면 뜻이 표시됩니다.</p>
+            </div>
           </div>
-        </div>
 
-        {/* API URL */}
-        <div style={{
-          background: 'rgba(255,255,255,0.04)',
-          border: '1px solid rgba(255,255,255,0.08)',
-          borderRadius: '16px',
-          padding: '24px',
-          marginBottom: '24px',
-        }}>
-          <h2 style={{ margin: '0 0 6px 0', fontSize: '16px', fontWeight: 700 }}>🌐 서버 주소</h2>
-          <p style={{ margin: '0 0 16px 0', color: '#71717a', fontSize: '13px' }}>
-            AI English Study 서버의 주소를 입력하세요.
-          </p>
-          <input
-            type="url"
-            value={state.apiBaseUrl}
-            onChange={(e) => setState(prev => ({ ...prev, apiBaseUrl: e.target.value }))}
-            placeholder="http://localhost:3000"
-            style={{
-              width: '100%', boxSizing: 'border-box',
-              padding: '12px 14px', borderRadius: '10px',
-              background: 'rgba(255,255,255,0.06)',
-              border: '1px solid rgba(255,255,255,0.1)',
-              color: '#f4f4f5', fontSize: '14px', outline: 'none',
-              fontFamily: 'monospace',
-            }}
-          />
-          <p style={{ margin: '8px 0 0 0', color: '#52525b', fontSize: '12px' }}>
-            기본값: {defaultApiBaseUrl}
-          </p>
-        </div>
+          <div className="grid gap-3 sm:grid-cols-2">
+            {modifierOptions.map((option) => {
+              const active = state.modifier === option.value;
+              return (
+                <label
+                  key={option.value}
+                  className={`flex cursor-pointer items-center gap-4 rounded-3xl border p-4 transition ${
+                    active
+                      ? 'border-indigo-300 bg-indigo-50/80 shadow-sm'
+                      : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50'
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="modifier"
+                    value={option.value}
+                    checked={active}
+                    onChange={() => setState((prev) => ({ ...prev, modifier: option.value }))}
+                    className="sr-only"
+                  />
+                  <div
+                    className={`flex h-11 w-11 items-center justify-center rounded-2xl text-lg font-black ${
+                      active ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-600'
+                    }`}
+                  >
+                    {option.keyHint}
+                  </div>
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span className="font-bold text-slate-950">{option.label}</span>
+                      {active ? <Check className="h-4 w-4 text-indigo-600" /> : null}
+                    </div>
+                    <p className="text-sm text-slate-500">{option.description}</p>
+                  </div>
+                </label>
+              );
+            })}
+          </div>
+        </section>
 
-        {/* Save button */}
+        <section className="mt-4 rounded-[2rem] border border-white/70 bg-white/85 p-6 shadow-[0_18px_60px_rgba(15,23,42,0.08)] backdrop-blur">
+          <div className="flex items-start gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-sky-50 text-sky-700 ring-1 ring-sky-100">
+              <Globe2 className="h-5 w-5" />
+            </div>
+            <div>
+              <h2 className="text-lg font-bold text-slate-950">서버 주소</h2>
+              <p className="text-sm text-slate-600">AI English Study 서버의 주소를 입력하세요.</p>
+            </div>
+          </div>
+
+          <div className="mt-4">
+            <label className="space-y-2">
+              <span className="text-xs font-bold uppercase tracking-[0.24em] text-slate-400">API Base URL</span>
+              <input
+                type="url"
+                value={state.apiBaseUrl}
+                onChange={(e) => setState((prev) => ({ ...prev, apiBaseUrl: e.target.value }))}
+                placeholder="http://localhost:3000"
+                className="h-12 w-full rounded-2xl border border-slate-200 bg-white px-4 font-mono text-sm outline-none transition placeholder:text-slate-400 focus:border-indigo-300 focus:ring-4 focus:ring-indigo-100"
+              />
+            </label>
+            <p className="mt-2 text-xs text-slate-500">기본값: {defaultApiBaseUrl}</p>
+          </div>
+        </section>
+
         <button
           onClick={saveSettings}
-          style={{
-            width: '100%', padding: '14px', borderRadius: '14px',
-            background: state.saved
-              ? 'rgba(16,185,129,0.8)'
-              : 'linear-gradient(135deg, #6366f1, #8b5cf6)',
-            color: 'white', fontWeight: 700, fontSize: '15px',
-            border: 'none', cursor: 'pointer',
-            transition: 'all 0.2s ease',
-            boxShadow: '0 0 30px rgba(99,102,241,0.3)',
-          }}
+          className={`mt-6 inline-flex h-12 w-full items-center justify-center gap-2 rounded-full px-5 text-sm font-bold text-white shadow-lg transition ${
+            state.saved
+              ? 'bg-emerald-500 shadow-emerald-500/30'
+              : 'bg-gradient-to-r from-indigo-600 via-violet-600 to-sky-600 shadow-indigo-500/25 hover:brightness-105'
+          }`}
         >
-          {state.saved ? '✓ 저장되었습니다!' : '설정 저장'}
+          {state.saved ? <Check className="h-4 w-4" /> : null}
+          {state.saved ? '저장되었습니다' : '설정 저장'}
         </button>
 
-        {/* Hint */}
-        <div style={{
-          marginTop: '24px', padding: '16px', borderRadius: '12px',
-          background: 'rgba(99,102,241,0.08)', border: '1px solid rgba(99,102,241,0.2)',
-        }}>
-          <p style={{ margin: 0, fontSize: '13px', color: '#a5b4fc', lineHeight: 1.6 }}>
-            💡 <strong>사용법:</strong> 영어 웹페이지에서 선택한 키를 누른 채로<br />
-            모르는 단어 위에 마우스를 0.2초 올려두면 뜻이 팝업으로 표시됩니다.
-          </p>
+        <div className="mt-4 rounded-3xl border border-indigo-100 bg-indigo-50/70 p-4 text-sm text-indigo-900">
+          <strong>사용법:</strong> 영어 웹페이지에서 선택한 키를 누른 채로 모르는 단어 위에 마우스를 0.2초 올려두면 뜻이 팝업으로 표시됩니다.
+          {selectedOption ? (
+            <div className="mt-2 text-xs text-indigo-700">현재 선택: {selectedOption.label}</div>
+          ) : null}
         </div>
       </div>
     </div>

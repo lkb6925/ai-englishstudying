@@ -20,8 +20,63 @@
 
 :root {
   color-scheme: light;
+  --page-bg: #020617;
+  --page-fg: #0f172a;
+  --page-surface: rgba(255, 255, 255, 0.82);
+  --page-border: rgba(148, 163, 184, 0.22);
+  --page-shadow: 0 32px 80px rgba(15, 23, 42, 0.12);
+}
+
+html {
+  scroll-behavior: smooth;
+  background:
+    radial-gradient(circle at top left, rgba(99, 102, 241, 0.22), transparent 28%),
+    radial-gradient(circle at right top, rgba(56, 189, 248, 0.18), transparent 24%),
+    linear-gradient(180deg, #f8fafc 0%, #eef2ff 38%, #f8fafc 100%);
 }
 
 body {
-  @apply bg-slate-50 text-slate-900 antialiased;
+  min-height: 100vh;
+  color: var(--page-fg);
+  background:
+    radial-gradient(circle at 18% 20%, rgba(99, 102, 241, 0.18), transparent 0 18rem),
+    radial-gradient(circle at 85% 12%, rgba(14, 165, 233, 0.15), transparent 0 16rem),
+    linear-gradient(180deg, #f8fafc 0%, #eef2ff 42%, #f8fafc 100%);
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background-image: linear-gradient(rgba(255, 255, 255, 0.25) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.14) 1px, transparent 1px);
+  background-size: 72px 72px;
+  mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.75), transparent 88%);
+  opacity: 0.45;
+}
+
+::selection {
+  background: rgba(79, 70, 229, 0.85);
+  color: white;
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(99, 102, 241, 0.45) transparent;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(99, 102, 241, 0.35);
+  border-radius: 999px;
+  border: 2px solid rgba(248, 250, 252, 0.8);
 }

@@ -39,6 +39,14 @@ class FlowReaderContentScript {
 
   async start() {
     this.eventManager.setModifierMode(await this.loadModifierFromBackground());
+    chrome.runtime.onMessage.addListener((message: any) => {
+      if (message?.type === 'FLOW_MODIFIER_CHANGED') {
+        const modifier = message.payload?.modifier;
+        if (modifier === 'alt_option' || modifier === 'cmd_ctrl') {
+          this.eventManager.setModifierMode(modifier);
+        }
+      }
+    });
     this.eventManager.start();
   }
 

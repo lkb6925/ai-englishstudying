@@ -3,6 +3,24 @@ import { POST as lookupEventPost } from '@/app/api/lookup-event/route';
 import { POST as quizReviewPost } from '@/app/api/quiz-review/route';
 import { extractBearerToken, parseLookupBody, parseQuizReviewBody } from '@/src/server/parsers';
 
+const envKeys = ['AI_PROVIDER', 'AI_API_KEY', 'GEMINI_API_KEY', 'ANTHROPIC_API_KEY', 'AI_MODEL', 'GEMINI_MODEL', 'ANTHROPIC_MODEL'] as const;
+const originalEnv = Object.fromEntries(envKeys.map((key) => [key, process.env[key]])) as Record<(typeof envKeys)[number], string | undefined>;
+
+function restoreEnv() {
+  for (const key of envKeys) {
+    const value = originalEnv[key];
+    if (value === undefined) {
+      delete process.env[key];
+    } else {
+      process.env[key] = value;
+    }
+  }
+}
+
+afterEach(() => {
+  restoreEnv();
+});
+
 describe('server parsers', () => {
   it('parses valid lookup and quiz payloads', () => {
     expect(parseLookupBody({ word: 'focus', sentence: 'Stay focused.' })).toEqual({
@@ -36,11 +54,10 @@ describe('route handlers', () => {
   });
 
   it('returns a mock lookup response when AI_PROVIDER is mock', async () => {
-    const originalProvider = process.env.AI_PROVIDER;
-    const originalKey = process.env.AI_API_KEY;
-
     process.env.AI_PROVIDER = 'mock';
     delete process.env.AI_API_KEY;
+    delete process.env.GEMINI_API_KEY;
+    delete process.env.ANTHROPIC_API_KEY;
 
     const response = await lookupPost(
       new Request('http://localhost/api/lookup', {
@@ -55,24 +72,13 @@ describe('route handlers', () => {
     expect(json.lemma).toBe('focus');
     expect(Array.isArray(json.contextual_meanings)).toBe(true);
     expect(json.contextual_meanings.length).toBeGreaterThan(0);
-
-    if (originalProvider) {
-      process.env.AI_PROVIDER = originalProvider;
-    } else {
-      delete process.env.AI_PROVIDER;
-    }
-
-    if (originalKey) {
-      process.env.AI_API_KEY = originalKey;
-    }
   });
 
   it('returns 503 when AI is not configured', async () => {
-    const originalProvider = process.env.AI_PROVIDER;
-    const originalKey = process.env.AI_API_KEY;
-
     process.env.AI_PROVIDER = 'gemini';
     delete process.env.AI_API_KEY;
+    delete process.env.GEMINI_API_KEY;
+    delete process.env.ANTHROPIC_API_KEY;
 
     const response = await lookupPost(
       new Request('http://localhost/api/lookup', {
@@ -83,16 +89,6 @@ describe('route handlers', () => {
     );
 
     expect(response.status).toBe(503);
-
-    if (originalProvider) {
-      process.env.AI_PROVIDER = originalProvider;
-    } else {
-      delete process.env.AI_PROVIDER;
-    }
-
-    if (originalKey) {
-      process.env.AI_API_KEY = originalKey;
-    }
   });
 
   it('returns excluded_domain without auth for blocked hosts', async () => {

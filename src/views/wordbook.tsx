@@ -62,34 +62,67 @@ export function WordbookPage() {
 
   if (loading || isFetching) {
     return (
-      <div className="min-h-screen bg-slate-50">
+      <div className="min-h-screen bg-transparent">
         <Header />
-        <div className="flex h-[calc(100vh-64px)] items-center justify-center">
-          <p className="text-slate-500">Loading your wordbook...</p>
-        </div>
+        <main className="mx-auto max-w-6xl px-4 py-10">
+          <div className="rounded-[2rem] border border-white/70 bg-white/85 p-6 shadow-sm backdrop-blur">
+            <div className="flex items-center justify-between">
+              <div>
+                <div className="h-4 w-28 rounded-full bg-slate-200" />
+                <div className="mt-3 h-8 w-56 rounded-full bg-slate-200" />
+              </div>
+              <div className="h-10 w-32 rounded-full bg-slate-200" />
+            </div>
+            <div className="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+              {Array.from({ length: 4 }).map((_, index) => (
+                <div key={index} className="h-28 animate-pulse rounded-3xl bg-slate-100" />
+              ))}
+            </div>
+            <div className="mt-8 grid gap-4 xl:grid-cols-2">
+              {Array.from({ length: 2 }).map((_, index) => (
+                <div key={index} className="h-60 animate-pulse rounded-3xl bg-slate-100" />
+              ))}
+            </div>
+          </div>
+        </main>
       </div>
     );
   }
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-slate-50">
+      <div className="min-h-screen bg-transparent">
         <Header />
-        <main className="mx-auto max-w-3xl px-4 py-20 text-center">
-          <h1 className="mb-4 text-3xl font-bold">Wordbook</h1>
-          <p className="mb-8 text-slate-600">
-            로그인하시면 당신이 조회한 단어들을 확인할 수 있습니다.
-          </p>
-          <Link href="/auth">
-            <Button size="lg">Login to Start</Button>
-          </Link>
+        <main className="mx-auto flex max-w-4xl px-4 py-20">
+          <section className="w-full rounded-[2rem] border border-white/70 bg-white/88 p-8 text-center shadow-[0_24px_70px_rgba(15,23,42,0.08)] backdrop-blur">
+            <span className="inline-flex rounded-full bg-indigo-100 px-3 py-1 text-xs font-bold uppercase tracking-[0.24em] text-indigo-700">
+              Wordbook
+            </span>
+            <h1 className="mt-4 text-4xl font-black tracking-tight text-slate-950">Wordbook</h1>
+            <p className="mx-auto mt-4 max-w-2xl text-base leading-7 text-slate-600">
+              로그인하시면 당신이 조회한 단어들을 확인할 수 있습니다. 저장된 단어는 위험 랭크와 함께 쌓여
+              복습 우선순위를 자동으로 만듭니다.
+            </p>
+            <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
+              <Link href="/auth">
+                <Button size="lg" className="rounded-full px-8">
+                  Login to Start
+                </Button>
+              </Link>
+              <Link href="/setup">
+                <Button size="lg" variant="outline" className="rounded-full border-slate-300 px-8 bg-white/80">
+                  설치 가이드 보기
+                </Button>
+              </Link>
+            </div>
+          </section>
         </main>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-transparent">
       <Header />
       <main className="mx-auto max-w-6xl px-4 py-10">
         <WordbookDashboard words={words} planTier={planTier} />
