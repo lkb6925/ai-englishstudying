@@ -5,6 +5,7 @@ dist-extension/
 coverage/
 .DS_Store
 *.log
+ai_feedback.md
 gemini_feedback.md
 .env*
 !.env.example
