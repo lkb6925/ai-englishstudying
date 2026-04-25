@@ -1,11 +1,12 @@
 # .env.local 작성 템플릿
 
-이 문서는 `.env.local`에 그대로 붙여넣고 값을 채우기 위한 템플릿입니다.
+이 문서는 repo 루트의 `.env.local`에 그대로 붙여넣고 값을 채우기 위한 템플릿입니다.
+`.env.local`은 GitHub에 커밋하지 않는 로컬 파일입니다.
 
 중요:
 - `env.local`이 아니라 `.env.local` 파일을 사용하세요.
 - `NEXT_PUBLIC_*` / `VITE_*` 값은 같은 Supabase 프로젝트 값을 넣으면 됩니다.
-- 실제 키 값은 절대 이 문서에 남기지 마세요.
+- 실제 키 값은 절대 이 문서나 GitHub에 남기지 마세요.
 
 ## Supabase에서 가져올 값
 
@@ -36,7 +37,9 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=YOUR_SUPABASE_ANON_KEY
 VITE_SUPABASE_URL=https://YOUR_PROJECT.supabase.co
 VITE_SUPABASE_ANON_KEY=YOUR_SUPABASE_ANON_KEY
 
-AI_API_KEY=YOUR_AI_API_KEY
+AI_API_KEY=
+GEMINI_API_KEY=
+ANTHROPIC_API_KEY=
 AI_PROVIDER=mock
 AI_MODEL=mock
 ```

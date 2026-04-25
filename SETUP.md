@@ -39,7 +39,8 @@ npm run dev
 - 웹앱과 API는 `http://localhost:3000`에서 함께 실행됩니다.
 - 먼저 `.env.local`과 Supabase 스키마를 맞춘 뒤, 홈 화면에서 `/setup`으로 들어가 확장앱 설치 안내를 보면 됩니다.
 - 확장앱은 Supabase 설정이 끝난 다음에 설치해도 됩니다.
-- `.env.local` 템플릿이 필요하면 `ENV_LOCAL_TEMPLATE.md`를 열어 그대로 복사해 쓰면 됩니다.
+- `.env.example`를 `.env.local`로 복사한 뒤 값만 채워 넣으면 됩니다.
+- 더 친절한 안내가 필요하면 `ENV_LOCAL_TEMPLATE.md`를 열어 그대로 복사해 쓰면 됩니다.
 
 ## Chrome 확장앱 빌드
 
@@ -83,7 +84,7 @@ npm run watch:ai
 - 코드 파일을 저장하면 watcher가 AI 리뷰를 요청하고 결과를 `ai_feedback.md`에 기록합니다.
 - `AI_API_KEY`를 우선 사용하고, 없으면 `GEMINI_API_KEY` 또는 `ANTHROPIC_API_KEY`를 대체값으로 사용합니다.
 - `AI_PROVIDER=mock`이면 외부 API 없이 로컬에서 바로 테스트할 수 있습니다.
-- `env.local` 파일이 있으면 `cp env.local .env.local`로 복사해 주세요. `.env.local`만 자동 로드됩니다.
+- `.env.local`만 자동 로드됩니다. 로컬에 값이 없다면 `.env.example`를 복사해 `.env.local`을 만들어 주세요.
 
 ## 출시 전 체크리스트
 
