@@ -6,8 +6,12 @@ import { Button } from '@/src/components/ui/button';
 
 const installSteps = [
   {
-    title: '최신 확장앱 빌드 받기',
-    description: '대시보드에서 dist-extension/ 폴더 또는 패키지된 ZIP 파일을 확보합니다.',
+    title: 'Supabase 설정 먼저 마무리',
+    description: '`.env.local`에 Supabase URL과 anon key를 넣고 `supabase-schema.sql`을 실행합니다.',
+  },
+  {
+    title: '로컬 웹앱이 뜨는지 확인',
+    description: '서버를 띄운 뒤 홈 화면과 `/setup` 페이지가 정상 응답하는지 먼저 봅니다.',
   },
   {
     title: 'Chrome 개발자 모드 활성화',
@@ -23,12 +27,12 @@ const installSteps = [
   },
 ];
 
+
 const checklist = [
   'AI English Study 서버가 실행 중인지 확인',
   'Supabase 인증 정보가 설정되어 있는지 확인',
   '확장앱이 대상 사이트 권한을 가지고 있는지 확인',
 ];
-
 export function SetupPage() {
   return (
     <div className="min-h-screen bg-transparent">
@@ -45,8 +49,8 @@ export function SetupPage() {
               AI English Study 설치 가이드
             </h1>
             <p className="mt-4 max-w-2xl text-base leading-7 text-slate-600 sm:text-lg">
-              첫 출시 버전은 Chrome 개발자 모드 설치를 기준으로 제공합니다. 아래 순서대로 설치하면
-              바로 단어 조회와 단어장 저장을 사용할 수 있습니다.
+              첫 출시 버전은 Supabase 설정을 먼저 마친 뒤 Chrome 확장앱을 붙이는 순서로 진행하면 됩니다.
+              아래 순서대로 진행하면 바로 단어 조회와 단어장 저장을 사용할 수 있습니다.
             </p>
 
             <div className="mt-8 space-y-4">
