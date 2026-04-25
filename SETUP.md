@@ -11,7 +11,7 @@ AI English Study는 웹앱, Express API, Chrome 확장앱이 함께 동작하는
 
 ## 필수 환경변수
 
-`.env.local` 또는 `.env`에 아래 값을 넣습니다.
+`.env.local`에 아래 값을 넣습니다. 이 파일명이 중요합니다. Next/Vite가 자동으로 읽는 건 `env.local`이 아니라 `.env.local`입니다.
 
 ```env
 APP_URL=http://localhost:3000
@@ -20,7 +20,7 @@ VITE_APP_URL=http://localhost:3000
 VITE_API_BASE_URL=http://localhost:3000
 VITE_SUPABASE_URL=https://YOUR_PROJECT.supabase.co
 VITE_SUPABASE_ANON_KEY=YOUR_SUPABASE_ANON_KEY
-AI_API_KEY=YOUR_API_KEY
+AI_API_KEY=YOUR_API_KEY_OR_USE_GEMINI_API_KEY
 AI_PROVIDER=mock # local offline testing; change to gemini or anthropic for live calls
 AI_MODEL=mock
 ```
@@ -79,8 +79,9 @@ npm run watch:ai
 
 - 실행 시 `ai_feedback.md`가 없으면 자동으로 초기 파일을 만듭니다.
 - 코드 파일을 저장하면 watcher가 AI 리뷰를 요청하고 결과를 `ai_feedback.md`에 기록합니다.
-- `AI_API_KEY`가 없으면 리뷰 대신 복구 방법이 적힌 안내를 파일에 남깁니다.
+- `AI_API_KEY`가 없더라도 `GEMINI_API_KEY` 또는 `ANTHROPIC_API_KEY`가 있으면 그걸 사용합니다.
 - `AI_PROVIDER=mock`이면 외부 API 없이 로컬에서 바로 테스트할 수 있습니다.
+- `env.local` 파일이 있으면 `cp env.local .env.local`로 복사해 주세요. `.env.local`만 자동 로드됩니다.
 
 ## 출시 전 체크리스트
 
