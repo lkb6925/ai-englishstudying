@@ -20,9 +20,23 @@ afterEach(() => {
 });
 
 describe('ai client config', () => {
+  it('uses AI_API_KEY without requiring GEMINI_API_KEY', () => {
+    delete process.env.AI_PROVIDER;
+    delete process.env.GEMINI_API_KEY;
+    delete process.env.ANTHROPIC_API_KEY;
+    process.env.AI_API_KEY = 'sample-token';
+    process.env.AI_MODEL = 'mock';
+
+    expect(getAiConfig()).toMatchObject({
+      provider: 'gemini',
+      model: 'mock',
+      apiKey: 'sample-token',
+    });
+  });
+
   it('prefers provider-specific model names over AI_MODEL', () => {
     process.env.AI_PROVIDER = 'gemini';
-    process.env.GEMINI_API_KEY = 'gemini-key';
+    process.env.GEMINI_API_KEY = 'gemini-token';
     process.env.AI_MODEL = 'mock';
     process.env.GEMINI_MODEL = 'gemini-1.5-pro';
 
@@ -30,7 +44,7 @@ describe('ai client config', () => {
     expect(getAiConfig()).toMatchObject({
       provider: 'gemini',
       model: 'gemini-1.5-pro',
-      apiKey: 'gemini-key',
+      apiKey: 'gemini-token',
     });
   });
 
