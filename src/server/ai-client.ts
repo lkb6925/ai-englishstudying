@@ -52,16 +52,16 @@ function detectProvider(): AiProvider | null {
     return explicit;
   }
 
+  if (process.env.AI_API_KEY) {
+    return 'gemini';
+  }
+
   if (process.env.GEMINI_API_KEY) {
     return 'gemini';
   }
 
   if (process.env.ANTHROPIC_API_KEY) {
     return 'anthropic';
-  }
-
-  if (process.env.AI_API_KEY) {
-    return 'gemini';
   }
 
   if (process.env.NODE_ENV === 'test') {
