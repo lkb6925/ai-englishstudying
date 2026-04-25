@@ -3,6 +3,7 @@ build/
 dist/
 dist-extension/
 coverage/
+.next/
 .DS_Store
 *.log
 ai_feedback.md

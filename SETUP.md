@@ -37,7 +37,9 @@ npm run dev
 ```
 
 - 웹앱과 API는 `http://localhost:3000`에서 함께 실행됩니다.
-- 홈 화면에서 `/setup`으로 들어가면 확장앱 설치 안내를 볼 수 있습니다.
+- 먼저 `.env.local`과 Supabase 스키마를 맞춘 뒤, 홈 화면에서 `/setup`으로 들어가 확장앱 설치 안내를 보면 됩니다.
+- 확장앱은 Supabase 설정이 끝난 다음에 설치해도 됩니다.
+- `.env.local` 템플릿이 필요하면 `ENV_LOCAL_TEMPLATE.md`를 열어 그대로 복사해 쓰면 됩니다.
 
 ## Chrome 확장앱 빌드
 
