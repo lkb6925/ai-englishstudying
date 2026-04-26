@@ -39,6 +39,42 @@ const modifierOptions = [
   },
 ] as const;
 
+function SettingsCard({
+  icon,
+  title,
+  description,
+  children,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  description: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <section className="rounded-[2rem] border border-slate-200/80 bg-white/90 p-6 shadow-[0_18px_60px_rgba(15,23,42,0.08)] backdrop-blur">
+      <div className="flex items-start gap-3">
+        <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-slate-950 text-white shadow-lg shadow-slate-950/10">
+          {icon}
+        </div>
+        <div className="min-w-0">
+          <h2 className="text-lg font-black tracking-tight text-slate-950">{title}</h2>
+          <p className="mt-1 text-sm leading-6 text-slate-600">{description}</p>
+        </div>
+      </div>
+      <div className="mt-5">{children}</div>
+    </section>
+  );
+}
+
+function FieldLabel({ title, helper }: { title: string; helper: string }) {
+  return (
+    <div className="space-y-1">
+      <div className="text-xs font-bold uppercase tracking-[0.24em] text-slate-400">{title}</div>
+      <div className="text-sm text-slate-500">{helper}</div>
+    </div>
+  );
+}
+
 function Options() {
   const [state, setState] = useState<OptionsState>({
     modifier: 'alt_option',
@@ -53,14 +89,16 @@ function Options() {
   );
 
   useEffect(() => {
-    chrome.storage.sync.get(['flow_reader_modifier', 'flow_reader_app_url', 'flow_reader_api_base_url']).then((values) => {
-      setState((prev) => ({
-        ...prev,
-        modifier: (values.flow_reader_modifier as ModifierMode) || 'alt_option',
-        appUrl: values.flow_reader_app_url || defaultAppUrl,
-        apiBaseUrl: values.flow_reader_api_base_url || defaultApiBaseUrl,
-      }));
-    });
+    chrome.storage.sync
+      .get(['flow_reader_modifier', 'flow_reader_app_url', 'flow_reader_api_base_url'])
+      .then((values) => {
+        setState((prev) => ({
+          ...prev,
+          modifier: (values.flow_reader_modifier as ModifierMode) || 'alt_option',
+          appUrl: values.flow_reader_app_url || defaultAppUrl,
+          apiBaseUrl: values.flow_reader_api_base_url || defaultApiBaseUrl,
+        }));
+      });
   }, []);
 
   useEffect(() => {
@@ -85,34 +123,40 @@ function Options() {
   };
 
   return (
-    <div className="min-h-screen bg-transparent px-4 py-10 text-slate-900">
-      <div className="mx-auto max-w-3xl">
-        <header className="mb-6 rounded-[2rem] border border-white/70 bg-white/85 p-6 shadow-[0_18px_60px_rgba(15,23,42,0.08)] backdrop-blur">
-          <div className="flex items-center gap-3">
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-950 text-white shadow-lg shadow-slate-950/15">
-              <Sparkles className="h-5 w-5" />
-            </div>
-            <div>
-              <p className="text-xs font-bold uppercase tracking-[0.28em] text-indigo-600">AI English Study</p>
-              <h1 className="text-2xl font-black tracking-tight">설정</h1>
+    <div className="min-h-screen bg-gradient-to-b from-slate-50 via-white to-indigo-50 px-4 py-8 text-slate-900">
+      <div className="mx-auto flex max-w-2xl flex-col gap-4">
+        <header className="overflow-hidden rounded-[2rem] border border-slate-200/80 bg-white shadow-[0_18px_60px_rgba(15,23,42,0.08)]">
+          <div className="bg-gradient-to-r from-indigo-600 via-violet-600 to-sky-500 px-6 py-6 text-white">
+            <div className="flex items-center gap-3">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/15 ring-1 ring-white/20">
+                <Sparkles className="h-5 w-5" />
+              </div>
+              <div>
+                <p className="text-xs font-bold uppercase tracking-[0.3em] text-white/80">AI English Study</p>
+                <h1 className="mt-1 text-2xl font-black tracking-tight">설정</h1>
+              </div>
             </div>
           </div>
-          <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-600">
-            단축키와 서버 주소를 저장하면 확장앱이 바로 동작합니다. 저장 후 열려 있는 탭에도 설정이 자동 반영됩니다.
-          </p>
+          <div className="px-6 py-5">
+            <p className="max-w-2xl text-sm leading-6 text-slate-600">
+              단축키와 웹앱 주소를 저장하면 확장앱이 바로 동작합니다. 저장 후 열려 있는 탭에도 설정이 자동 반영됩니다.
+            </p>
+            <div className="mt-4 flex flex-wrap gap-2 text-xs font-semibold">
+              <span className="rounded-full bg-indigo-50 px-3 py-1 text-indigo-700 ring-1 ring-indigo-100">
+                기본 웹앱: {defaultAppUrl}
+              </span>
+              <span className="rounded-full bg-sky-50 px-3 py-1 text-sky-700 ring-1 ring-sky-100">
+                기본 서버: {defaultApiBaseUrl}
+              </span>
+            </div>
+          </div>
         </header>
 
-        <section className="space-y-4 rounded-[2rem] border border-white/70 bg-white/85 p-6 shadow-[0_18px_60px_rgba(15,23,42,0.08)] backdrop-blur">
-          <div className="flex items-start gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-indigo-50 text-indigo-700 ring-1 ring-indigo-100">
-              <Keyboard className="h-5 w-5" />
-            </div>
-            <div>
-              <h2 className="text-lg font-bold text-slate-950">단어 조회 단축키</h2>
-              <p className="text-sm text-slate-600">이 키를 누른 상태에서 단어 위에 마우스를 올리면 뜻이 표시됩니다.</p>
-            </div>
-          </div>
-
+        <SettingsCard
+          icon={<Keyboard className="h-5 w-5" />}
+          title="단어 조회 단축키"
+          description="선택한 키를 누른 상태에서 단어 위에 마우스를 올리면 뜻이 표시됩니다."
+        >
           <div className="grid gap-3 sm:grid-cols-2">
             {modifierOptions.map((option) => {
               const active = state.modifier === option.value;
@@ -151,22 +195,16 @@ function Options() {
               );
             })}
           </div>
-        </section>
+        </SettingsCard>
 
-        <section className="mt-4 rounded-[2rem] border border-white/70 bg-white/85 p-6 shadow-[0_18px_60px_rgba(15,23,42,0.08)] backdrop-blur">
-          <div className="flex items-start gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-sky-50 text-sky-700 ring-1 ring-sky-100">
-              <Globe2 className="h-5 w-5" />
-            </div>
-            <div>
-              <h2 className="text-lg font-bold text-slate-950">웹앱 주소</h2>
-              <p className="text-sm text-slate-600">팝업의 “내 단어장 열기” 버튼이 여기를 열어요.</p>
-            </div>
-          </div>
-
-          <div className="mt-4">
-            <label className="space-y-2">
-              <span className="text-xs font-bold uppercase tracking-[0.24em] text-slate-400">App URL</span>
+        <SettingsCard
+          icon={<Globe2 className="h-5 w-5" />}
+          title="주소 설정"
+          description="팝업의 ‘내 단어장 열기’와 서버 요청 주소를 각각 맞게 저장하세요."
+        >
+          <div className="grid gap-4 md:grid-cols-2">
+            <label className="block space-y-2">
+              <FieldLabel title="App URL" helper="팝업 버튼이 여기를 엽니다." />
               <input
                 type="url"
                 value={state.appUrl}
@@ -175,24 +213,9 @@ function Options() {
                 className="h-12 w-full rounded-2xl border border-slate-200 bg-white px-4 font-mono text-sm outline-none transition placeholder:text-slate-400 focus:border-indigo-300 focus:ring-4 focus:ring-indigo-100"
               />
             </label>
-            <p className="mt-2 text-xs text-slate-500">기본값: {defaultAppUrl}</p>
-          </div>
-        </section>
 
-        <section className="mt-4 rounded-[2rem] border border-white/70 bg-white/85 p-6 shadow-[0_18px_60px_rgba(15,23,42,0.08)] backdrop-blur">
-          <div className="flex items-start gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-sky-50 text-sky-700 ring-1 ring-sky-100">
-              <Globe2 className="h-5 w-5" />
-            </div>
-            <div>
-              <h2 className="text-lg font-bold text-slate-950">서버 주소</h2>
-              <p className="text-sm text-slate-600">AI English Study 서버의 주소를 입력하세요.</p>
-            </div>
-          </div>
-
-          <div className="mt-4">
-            <label className="space-y-2">
-              <span className="text-xs font-bold uppercase tracking-[0.24em] text-slate-400">API Base URL</span>
+            <label className="block space-y-2">
+              <FieldLabel title="API Base URL" helper="확장앱이 서버에 요청을 보냅니다." />
               <input
                 type="url"
                 value={state.apiBaseUrl}
@@ -201,13 +224,12 @@ function Options() {
                 className="h-12 w-full rounded-2xl border border-slate-200 bg-white px-4 font-mono text-sm outline-none transition placeholder:text-slate-400 focus:border-indigo-300 focus:ring-4 focus:ring-indigo-100"
               />
             </label>
-            <p className="mt-2 text-xs text-slate-500">기본값: {defaultApiBaseUrl}</p>
           </div>
-        </section>
+        </SettingsCard>
 
         <button
           onClick={saveSettings}
-          className={`mt-6 inline-flex h-12 w-full items-center justify-center gap-2 rounded-full px-5 text-sm font-bold text-white shadow-lg transition ${
+          className={`inline-flex h-12 w-full items-center justify-center gap-2 rounded-full px-5 text-sm font-bold text-white shadow-lg transition ${
             state.saved
               ? 'bg-emerald-500 shadow-emerald-500/30'
               : 'bg-gradient-to-r from-indigo-600 via-violet-600 to-sky-600 shadow-indigo-500/25 hover:brightness-105'
@@ -217,11 +239,11 @@ function Options() {
           {state.saved ? '저장되었습니다' : '설정 저장'}
         </button>
 
-        <div className="mt-4 rounded-3xl border border-indigo-100 bg-indigo-50/70 p-4 text-sm text-indigo-900">
-          <strong>사용법:</strong> 영어 웹페이지에서 선택한 키를 누른 채로 모르는 단어 위에 마우스를 0.2초 올려두면 뜻이 팝업으로 표시됩니다.
-          {selectedOption ? (
-            <div className="mt-2 text-xs text-indigo-700">현재 선택: {selectedOption.label}</div>
-          ) : null}
+        <div className="rounded-3xl border border-indigo-100 bg-indigo-50/70 p-4 text-sm text-indigo-900">
+          <strong>현재 선택:</strong> {selectedOption ? selectedOption.label : '미선택'}
+          <div className="mt-2 text-xs leading-5 text-indigo-700">
+            저장 후 확장앱 팝업과 단어 조회 동작에 바로 반영됩니다.
+          </div>
         </div>
       </div>
     </div>
