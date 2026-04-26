@@ -266,15 +266,18 @@ export default defineConfig(({ mode }) => {
   );
 
   return {
+    define: {
+      'process.env.NODE_ENV': JSON.stringify('production'),
+    },
     build: {
       outDir: 'dist-extension',
       lib: {
         entry: {
-        background: path.resolve(__dirname, 'background.ts'),
-        content: path.resolve(__dirname, 'content.tsx'),
-        options: path.resolve(__dirname, 'options.tsx'),
-        popup: path.resolve(__dirname, 'popup.ts'),
-      },
+          background: path.resolve(__dirname, 'background.ts'),
+          content: path.resolve(__dirname, 'content.tsx'),
+          options: path.resolve(__dirname, 'options.tsx'),
+          popup: path.resolve(__dirname, 'popup.ts'),
+        },
         formats: ['es'],
       },
       rollupOptions: {
