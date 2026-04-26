@@ -1,4 +1,5 @@
 export const extensionStorageKeys = {
+  appUrl: 'flow_reader_app_url',
   apiBaseUrl: 'flow_reader_api_base_url',
   modifier: 'flow_reader_modifier',
   jwt: 'supabase_jwt',

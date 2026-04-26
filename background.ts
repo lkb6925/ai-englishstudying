@@ -18,6 +18,17 @@ const defaultAppUrl = resolveAppOrigin(
   import.meta.env.VITE_CODESPACE_NAME,
   import.meta.env.VITE_CODESPACES_PORT_FORWARDING_DOMAIN,
 );
+
+async function getAppUrl(): Promise<string> {
+  const value = await readStorageValue<string>(
+    chrome.storage.sync,
+    extensionStorageKeys.appUrl,
+  );
+  if (typeof value === 'string' && value.trim().length > 0) {
+    return value.trim().replace(/\/$/, '');
+  }
+  return defaultAppUrl;
+}
 const defaultApiBaseUrl = resolveApiBaseUrl(
   import.meta.env.VITE_API_BASE_URL,
   import.meta.env.VITE_APP_URL,
@@ -318,12 +329,15 @@ chrome.runtime.onMessage.addListener(
       }
       if (incoming.type === 'FLOW_GET_RUNTIME_CONFIG') {
         const modifier = await getModifier();
-        const apiBaseUrl = await getApiBaseUrl();
+        const [appUrl, apiBaseUrl] = await Promise.all([
+          getAppUrl(),
+          getApiBaseUrl(),
+        ]);
         return {
           ok: true,
           data: {
             modifier,
-            appUrl: defaultAppUrl,
+            appUrl,
             apiBaseUrl: apiBaseUrl || defaultApiBaseUrl,
           },
         };

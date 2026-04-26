@@ -2,8 +2,14 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { Check, Globe2, Keyboard, Sparkles } from 'lucide-react';
 import type { ModifierMode } from './messages';
-import { resolveApiBaseUrl } from './app-config';
+import { resolveApiBaseUrl, resolveAppOrigin } from './app-config';
+import { extensionStorageKeys } from './extension-storage';
 
+const defaultAppUrl = resolveAppOrigin(
+  import.meta.env.VITE_APP_URL,
+  import.meta.env.VITE_CODESPACE_NAME,
+  import.meta.env.VITE_CODESPACES_PORT_FORWARDING_DOMAIN,
+);
 const defaultApiBaseUrl = resolveApiBaseUrl(
   import.meta.env.VITE_API_BASE_URL,
   import.meta.env.VITE_APP_URL,
@@ -13,6 +19,7 @@ const defaultApiBaseUrl = resolveApiBaseUrl(
 
 type OptionsState = {
   modifier: ModifierMode;
+  appUrl: string;
   apiBaseUrl: string;
   saved: boolean;
 };
@@ -35,6 +42,7 @@ const modifierOptions = [
 function Options() {
   const [state, setState] = useState<OptionsState>({
     modifier: 'alt_option',
+    appUrl: defaultAppUrl,
     apiBaseUrl: defaultApiBaseUrl,
     saved: false,
   });
@@ -45,10 +53,11 @@ function Options() {
   );
 
   useEffect(() => {
-    chrome.storage.sync.get(['flow_reader_modifier', 'flow_reader_api_base_url']).then((values) => {
+    chrome.storage.sync.get(['flow_reader_modifier', 'flow_reader_app_url', 'flow_reader_api_base_url']).then((values) => {
       setState((prev) => ({
         ...prev,
         modifier: (values.flow_reader_modifier as ModifierMode) || 'alt_option',
+        appUrl: values.flow_reader_app_url || defaultAppUrl,
         apiBaseUrl: values.flow_reader_api_base_url || defaultApiBaseUrl,
       }));
     });
@@ -69,6 +78,7 @@ function Options() {
   const saveSettings = async () => {
     await chrome.storage.sync.set({
       flow_reader_modifier: state.modifier,
+      flow_reader_app_url: state.appUrl.trim(),
       flow_reader_api_base_url: state.apiBaseUrl.trim(),
     });
     setState((prev) => ({ ...prev, saved: true }));
@@ -140,6 +150,32 @@ function Options() {
                 </label>
               );
             })}
+          </div>
+        </section>
+
+        <section className="mt-4 rounded-[2rem] border border-white/70 bg-white/85 p-6 shadow-[0_18px_60px_rgba(15,23,42,0.08)] backdrop-blur">
+          <div className="flex items-start gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-sky-50 text-sky-700 ring-1 ring-sky-100">
+              <Globe2 className="h-5 w-5" />
+            </div>
+            <div>
+              <h2 className="text-lg font-bold text-slate-950">웹앱 주소</h2>
+              <p className="text-sm text-slate-600">팝업의 “내 단어장 열기” 버튼이 여기를 열어요.</p>
+            </div>
+          </div>
+
+          <div className="mt-4">
+            <label className="space-y-2">
+              <span className="text-xs font-bold uppercase tracking-[0.24em] text-slate-400">App URL</span>
+              <input
+                type="url"
+                value={state.appUrl}
+                onChange={(e) => setState((prev) => ({ ...prev, appUrl: e.target.value }))}
+                placeholder="https://your-app.example.com"
+                className="h-12 w-full rounded-2xl border border-slate-200 bg-white px-4 font-mono text-sm outline-none transition placeholder:text-slate-400 focus:border-indigo-300 focus:ring-4 focus:ring-indigo-100"
+              />
+            </label>
+            <p className="mt-2 text-xs text-slate-500">기본값: {defaultAppUrl}</p>
           </div>
         </section>
 
