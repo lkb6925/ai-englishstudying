@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { createRoot } from 'react-dom/client';
 import { Check, Globe2, Keyboard, Sparkles } from 'lucide-react';
 import type { ModifierMode } from './messages';
 import { resolveApiBaseUrl } from './app-config';
@@ -192,3 +193,8 @@ function Options() {
 }
 
 export default Options;
+
+const root = document.getElementById('root');
+if (root) {
+  createRoot(root).render(<Options />);
+}

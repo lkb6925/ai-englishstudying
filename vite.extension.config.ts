@@ -225,7 +225,7 @@ function copyExtensionAssets({ appUrl, apiBaseUrl }: ExtensionPluginOptions) {
 </head>
 <body>
   <div id="root"></div>
-  <script src="options.js"></script>
+  <script type="module" src="options.js"></script>
 </body>
 </html>`;
       await fs.writeFile(
