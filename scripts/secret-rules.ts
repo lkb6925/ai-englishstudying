@@ -81,7 +81,7 @@ export function isSafePlaceholderLine(line: string): boolean {
 
 export function hasUnsafeEnvAssignment(content: string): boolean {
   return content.split('\n').some((line) => {
-    if (!/(?:^|_)(API_KEY|TOKEN|SECRET|PASSWORD)\s*=/.test(line)) {
+    if (!/^\s*(?:export\s+)?[A-Z0-9_]*(API_KEY|TOKEN|SECRET|PASSWORD)\s*=/.test(line)) {
       return false;
     }
 

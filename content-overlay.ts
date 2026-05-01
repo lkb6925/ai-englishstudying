@@ -128,25 +128,51 @@ export class OverlayRenderer {
     const isLoading =
       state.meanings.length === 1 && state.meanings[0] === '조회 중...';
 
-    popup.innerHTML = `
-      <p class="word">
-        ${state.word}
-        <span class="badge">AI English Study</span>
-      </p>
-      <div class="divider"></div>
-      ${
-        isLoading
-          ? `<div class="loading"><div class="spinner"></div> AI가 문맥을 분석 중...</div>`
-          : `<ul class="meanings">${state.meanings
-              .map((meaning) => `<li class="meaning-item">${meaning}</li>`)
-              .join('')}</ul>`
+    const wordLine = document.createElement('p');
+    wordLine.className = 'word';
+    wordLine.append(document.createTextNode(state.word));
+
+    const badge = document.createElement('span');
+    badge.className = 'badge';
+    badge.textContent = 'AI English Study';
+    wordLine.appendChild(badge);
+
+    const divider = document.createElement('div');
+    divider.className = 'divider';
+
+    popup.appendChild(wordLine);
+    popup.appendChild(divider);
+
+    if (isLoading) {
+      const loading = document.createElement('div');
+      loading.className = 'loading';
+
+      const spinner = document.createElement('div');
+      spinner.className = 'spinner';
+
+      loading.appendChild(spinner);
+      loading.append(document.createTextNode(' AI가 문맥을 분석 중...'));
+      popup.appendChild(loading);
+    } else {
+      const meaningsList = document.createElement('ul');
+      meaningsList.className = 'meanings';
+
+      for (const meaning of state.meanings) {
+        const item = document.createElement('li');
+        item.className = 'meaning-item';
+        item.textContent = meaning;
+        meaningsList.appendChild(item);
       }
-      ${
-        state.fomoMessage
-          ? `<div class="fomo">${state.fomoMessage}</div>`
-          : ''
-      }
-    `;
+
+      popup.appendChild(meaningsList);
+    }
+
+    if (state.fomoMessage) {
+      const fomo = document.createElement('div');
+      fomo.className = 'fomo';
+      fomo.textContent = state.fomoMessage;
+      popup.appendChild(fomo);
+    }
 
     root.appendChild(popup);
   }

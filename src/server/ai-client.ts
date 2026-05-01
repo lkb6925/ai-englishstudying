@@ -17,13 +17,14 @@ export type AiTextOptions = {
 };
 
 const DEFAULT_MODELS: Record<AiProvider, string> = {
-  gemini: 'gemini-2.0-flash',
+  gemini: 'gemini-2.5-flash-lite',
   anthropic: 'claude-3-5-sonnet-20241022',
   mock: 'mock',
 };
 
 const ANTHROPIC_API_URL = 'https://api.anthropic.com/v1/messages';
 const ANTHROPIC_API_VERSION = '2023-06-01';
+const AI_REQUEST_TIMEOUT_MS = Number(process.env.AI_REQUEST_TIMEOUT_MS ?? '15000');
 
 function normalizeProvider(raw: string | null | undefined): AiProvider | null {
   const provider = raw?.trim().toLowerCase();
@@ -251,6 +252,23 @@ function parseJsonFromText(text: string): unknown {
   }
 }
 
+async function withAiTimeout<T>(operation: Promise<T>, provider: string): Promise<T> {
+  let timeoutId: ReturnType<typeof setTimeout> | undefined;
+  const timeout = new Promise<never>((_, reject) => {
+    timeoutId = setTimeout(() => {
+      reject(new Error(`${provider} request timed out`));
+    }, AI_REQUEST_TIMEOUT_MS);
+  });
+
+  try {
+    return await Promise.race([operation, timeout]);
+  } finally {
+    if (timeoutId) {
+      clearTimeout(timeoutId);
+    }
+  }
+}
+
 async function generateGeminiText(prompt: string, options: AiTextOptions = {}): Promise<string> {
   const config = getAiConfig();
   if (!config || config.provider !== 'gemini') {
@@ -258,15 +276,18 @@ async function generateGeminiText(prompt: string, options: AiTextOptions = {}): 
   }
 
   const ai = new GoogleGenAI({ apiKey: config.apiKey });
-  const response = await ai.models.generateContent({
-    model: options.model ?? config.model,
-    contents: prompt,
-    config: {
-      ...(options.system ? { systemInstruction: options.system } : {}),
-      temperature: options.temperature ?? 0.2,
-      maxOutputTokens: options.maxTokens ?? 1024,
-    },
-  });
+  const response = await withAiTimeout(
+    ai.models.generateContent({
+      model: options.model ?? config.model,
+      contents: prompt,
+      config: {
+        ...(options.system ? { systemInstruction: options.system } : {}),
+        temperature: options.temperature ?? 0.2,
+        maxOutputTokens: options.maxTokens ?? 1024,
+      },
+    }),
+    'Gemini',
+  );
 
   return extractTextFromGemini(response);
 }
@@ -277,26 +298,29 @@ async function generateAnthropicText(prompt: string, options: AiTextOptions = {}
     throw new Error('AI lookup is not configured on the server');
   }
 
-  const response = await fetch(ANTHROPIC_API_URL, {
-    method: 'POST',
-    headers: {
-      'content-type': 'application/json',
-      'anthropic-version': ANTHROPIC_API_VERSION,
-      'x-api-key': config.apiKey,
-    },
-    body: JSON.stringify({
-      model: options.model ?? config.model,
-      max_tokens: options.maxTokens ?? 1024,
-      temperature: options.temperature ?? 0.2,
-      ...(options.system ? { system: options.system } : {}),
-      messages: [
-        {
-          role: 'user',
-          content: [{ type: 'text', text: prompt }],
-        },
-      ],
+  const response = await withAiTimeout(
+    fetch(ANTHROPIC_API_URL, {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+        'anthropic-version': ANTHROPIC_API_VERSION,
+        'x-api-key': config.apiKey,
+      },
+      body: JSON.stringify({
+        model: options.model ?? config.model,
+        max_tokens: options.maxTokens ?? 1024,
+        temperature: options.temperature ?? 0.2,
+        ...(options.system ? { system: options.system } : {}),
+        messages: [
+          {
+            role: 'user',
+            content: [{ type: 'text', text: prompt }],
+          },
+        ],
+      }),
     }),
-  });
+    'Anthropic',
+  );
 
   if (!response.ok) {
     const errBody = await response.text();

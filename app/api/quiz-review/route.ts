@@ -42,7 +42,8 @@ export async function POST(request: Request) {
     const { error: updateError } = await userDb
       .from('wordbook_entries')
       .update({ rank: nextRank })
-      .eq('id', entryId);
+      .eq('id', entryId)
+      .eq('user_id', user.id);
 
     if (updateError) {
       throw updateError;

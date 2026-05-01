@@ -33,6 +33,16 @@ describe('server parsers', () => {
     });
   });
 
+  it('rejects oversized lookup inputs before they reach the AI provider', () => {
+    expect(() =>
+      parseLookupBody({ word: 'a'.repeat(81), sentence: 'Stay focused.' }),
+    ).toThrow(/word must be 80 characters or fewer/);
+
+    expect(() =>
+      parseLookupBody({ word: 'focus', sentence: 'a'.repeat(601) }),
+    ).toThrow(/sentence must be 600 characters or fewer/);
+  });
+
   it('extracts bearer tokens safely', () => {
     expect(extractBearerToken('Bearer test-token')).toBe('test-token');
     expect(extractBearerToken(null)).toBeNull();

@@ -16,4 +16,9 @@ env.download
 *.key
 *.p12
 *.pfx
+*.zip
 .omx/
+test-results/
+playwright-report/
+tsconfig.tsbuildinfo
+*.tsbuildinfo

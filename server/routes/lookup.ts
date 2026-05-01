@@ -68,6 +68,24 @@ function extractJWT(req: express.Request): string | null {
   return null;
 }
 
+function isTemporarilyUnavailableAiError(errMsg: string): boolean {
+  const normalized = errMsg.toLowerCase();
+  return (
+    errMsg.includes('HTTP 400') ||
+    errMsg.includes('HTTP 401') ||
+    errMsg.includes('HTTP 403') ||
+    errMsg.includes('HTTP 429') ||
+    errMsg.includes('HTTP 503') ||
+    errMsg.includes('HTTP 529') ||
+    normalized.includes('api key') ||
+    normalized.includes('invalid_argument') ||
+    normalized.includes('unavailable') ||
+    normalized.includes('quota') ||
+    normalized.includes('high demand') ||
+    normalized.includes('overloaded')
+  );
+}
+
 export function createLookupRouter(appContext: AppContext): express.Router {
   const router = express.Router();
 
@@ -94,11 +112,11 @@ export function createLookupRouter(appContext: AppContext): express.Router {
       console.error('Lookup error:', error);
       const errMsg = String(error);
 
-      if (errMsg.includes('HTTP 429') || errMsg.includes('HTTP 529') || errMsg.toLowerCase().includes('quota')) {
+      if (isTemporarilyUnavailableAiError(errMsg)) {
         return res.status(503).json({ error: 'AI lookup is currently unavailable' });
       }
 
-      return res.status(500).json({ error: 'AI lookup failed', details: errMsg });
+      return res.status(500).json({ error: 'AI lookup failed' });
     }
   });
 

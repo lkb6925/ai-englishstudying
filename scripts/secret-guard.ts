@@ -1,4 +1,5 @@
 import { execFileSync } from 'node:child_process';
+import { readFileSync, statSync } from 'node:fs';
 import {
   findSecretMatches,
   getBlockedPathReason,
@@ -30,11 +31,32 @@ function getStagedPaths(): string[] {
     .filter((line) => line.length > 0);
 }
 
+function getTrackedPaths(): string[] {
+  const output = runGit(['ls-files', '-z']);
+  if (!output) {
+    return [];
+  }
+
+  return output
+    .split('\0')
+    .map((line) => normalizeGitPath(line.trim()))
+    .filter((line) => line.length > 0);
+}
+
 function getStagedContent(path: string): string {
   return runGit(['show', `:${path}`]);
 }
 
-function findViolations(paths: string[]): Violation[] {
+function getTrackedContent(path: string): string {
+  const stats = statSync(path);
+  if (stats.size > 1_000_000) {
+    return '';
+  }
+
+  return readFileSync(path, 'utf8');
+}
+
+function findViolations(paths: string[], getContent: (path: string) => string): Violation[] {
   const violations: Violation[] = [];
 
   for (const path of paths) {
@@ -47,7 +69,7 @@ function findViolations(paths: string[]): Violation[] {
       continue;
     }
 
-    const content = getStagedContent(path);
+    const content = getContent(path);
 
     if (hasUnsafeEnvAssignment(content)) {
       violations.push({
@@ -69,17 +91,18 @@ function findViolations(paths: string[]): Violation[] {
 }
 
 function main() {
-  const stagedPaths = getStagedPaths();
+  const scanAllTrackedFiles = process.argv.includes('--all');
+  const paths = scanAllTrackedFiles ? getTrackedPaths() : getStagedPaths();
 
-  if (stagedPaths.length === 0) {
-    console.log('Secret guard: no staged files to scan.');
+  if (paths.length === 0) {
+    console.log(scanAllTrackedFiles ? 'Secret guard: no tracked files to scan.' : 'Secret guard: no staged files to scan.');
     return;
   }
 
-  const violations = findViolations(stagedPaths);
+  const violations = findViolations(paths, scanAllTrackedFiles ? getTrackedContent : getStagedContent);
 
   if (violations.length === 0) {
-    console.log(`Secret guard: scanned ${stagedPaths.length} staged file(s).`);
+    console.log(`Secret guard: scanned ${paths.length} ${scanAllTrackedFiles ? 'tracked' : 'staged'} file(s).`);
     return;
   }
 

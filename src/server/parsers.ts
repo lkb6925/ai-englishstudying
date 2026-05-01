@@ -13,15 +13,34 @@ export type LookupEventBody = {
 
 export type QuizAction = 'know' | 'dont_know';
 
-function requireNonEmptyString(value: unknown, fieldName: string): string {
+const MAX_WORD_LENGTH = 80;
+const MAX_SENTENCE_LENGTH = 600;
+const MAX_CONTEXT_LENGTH = 600;
+const MAX_SOURCE_FIELD_LENGTH = 256;
+const MAX_ENTRY_ID_LENGTH = 128;
+
+function requireNonEmptyString(
+  value: unknown,
+  fieldName: string,
+  maxLength = MAX_SOURCE_FIELD_LENGTH,
+): string {
   if (typeof value !== 'string' || !value.trim()) {
     throw new Error(`${fieldName} must be a non-empty string`);
   }
 
-  return value.trim();
+  const trimmed = value.trim();
+  if (trimmed.length > maxLength) {
+    throw new Error(`${fieldName} must be ${maxLength} characters or fewer`);
+  }
+
+  return trimmed;
 }
 
-function parseOptionalString(value: unknown, fieldName: string): string | undefined {
+function parseOptionalString(
+  value: unknown,
+  fieldName: string,
+  maxLength = MAX_SOURCE_FIELD_LENGTH,
+): string | undefined {
   if (value === undefined || value === null) {
     return undefined;
   }
@@ -31,7 +50,13 @@ function parseOptionalString(value: unknown, fieldName: string): string | undefi
   }
 
   const trimmed = value.trim();
-  return trimmed.length > 0 ? trimmed : undefined;
+  if (!trimmed) {
+    return undefined;
+  }
+  if (trimmed.length > maxLength) {
+    throw new Error(`${fieldName} must be ${maxLength} characters or fewer`);
+  }
+  return trimmed;
 }
 
 function parseOptionalStringArray(value: unknown, fieldName: string): string[] | undefined {
@@ -65,8 +90,8 @@ export function parseLookupBody(body: unknown): { word: string; sentence: string
 
   const { word, sentence } = body as Record<string, unknown>;
   return {
-    word: requireNonEmptyString(word, 'word'),
-    sentence: requireNonEmptyString(sentence, 'sentence'),
+    word: requireNonEmptyString(word, 'word', MAX_WORD_LENGTH),
+    sentence: requireNonEmptyString(sentence, 'sentence', MAX_SENTENCE_LENGTH),
   };
 }
 
@@ -80,8 +105,8 @@ export function parseLookupEventBody(
   const candidate = body as Record<string, unknown>;
 
   return {
-    term: requireNonEmptyString(candidate.term, 'term'),
-    context: parseOptionalString(candidate.context, 'context'),
+    term: requireNonEmptyString(candidate.term, 'term', MAX_WORD_LENGTH),
+    context: parseOptionalString(candidate.context, 'context', MAX_CONTEXT_LENGTH),
     meanings: parseOptionalStringArray(candidate.meanings, 'meanings'),
     sourceDomain: parseOptionalString(candidate.sourceDomain, 'sourceDomain'),
     sourcePathHash: parseOptionalString(candidate.sourcePathHash, 'sourcePathHash'),
@@ -99,7 +124,7 @@ export function parseQuizReviewBody(body: unknown): { entryId: string; action: Q
   }
 
   return {
-    entryId: requireNonEmptyString(entryId, 'entryId'),
+    entryId: requireNonEmptyString(entryId, 'entryId', MAX_ENTRY_ID_LENGTH),
     action,
   };
 }

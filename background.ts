@@ -136,17 +136,9 @@ async function getAuthToken(): Promise<string | null> {
     chrome.storage.session,
     extensionStorageKeys.jwt,
   );
-  if (typeof sessionToken === 'string' && sessionToken.length > 0) {
-    return sessionToken;
-  }
-  const localToken = await readStorageValue<string>(
-    chrome.storage.local,
-    extensionStorageKeys.jwt,
-  );
-  if (typeof localToken === 'string' && localToken.length > 0) {
-    return localToken;
-  }
-  return null;
+  return typeof sessionToken === 'string' && sessionToken.length > 0
+    ? sessionToken
+    : null;
 }
 
 async function buildHeaders(): Promise<HeadersInit> {
@@ -356,11 +348,7 @@ chrome.runtime.onMessage.addListener(
           extensionStorageKeys.jwt,
           incoming.payload.token,
         );
-        await writeStorageValue(
-          chrome.storage.local,
-          extensionStorageKeys.jwt,
-          incoming.payload.token,
-        );
+        await removeStorageValue(chrome.storage.local, extensionStorageKeys.jwt);
         return { ok: true, data: { saved: true } };
       }
       if (incoming.type === 'FLOW_CLEAR_JWT') {

@@ -1,18 +1,11 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { HomePage } from '@/src/pages/home';
-import { WordbookPage } from '@/src/pages/wordbook';
-import { AuthForm } from '@/src/components/auth-form';
-import { SetupPage } from '@/src/pages/setup';
-
 export default function App() {
   return (
-    <Router>
-      <Routes>
-        <Route path="/" element={<HomePage />} />
-        <Route path="/setup" element={<SetupPage />} />
-        <Route path="/wordbook" element={<WordbookPage />} />
-        <Route path="/auth" element={<div className="flex min-h-screen items-center justify-center bg-slate-50"><AuthForm /></div>} />
-      </Routes>
-    </Router>
+    <main className="min-h-screen p-8 font-sans text-slate-900">
+      <h1 className="text-3xl font-black">AI English Study</h1>
+      <p className="mt-3 max-w-2xl text-slate-600">
+        This repository is served by Next.js for the web app. Use npm run dev for
+        the app shell or npm run build-extension for the Chrome extension.
+      </p>
+    </main>
   );
 }
